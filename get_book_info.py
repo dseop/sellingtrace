@@ -4,8 +4,7 @@ import crawling as cr
 # 서지 정보만 빨리 뽑아내고 싶을 때, url만 입력해서 뽑아낼 때 사용!
 
 ### URL 정보 ###
-url_list ="""http://www.yes24.com/Product/Goods/9336176?Acode=101
-http://www.yes24.com/Product/Goods/61288827?Acode=101""".split('\n')
+url_list ="""http://www.yes24.com/Product/Goods/96195306""".split('\n')
 t_list = []
 t2_list = []
 a_list = []
@@ -93,5 +92,6 @@ https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=116048223&start=slayer""".spl
         print(t)
         print(t2+'\n'+a+' | '+n+' | '+p)
 
-rd = gbi_yes(url_list)
-rd.to_csv('getinfo.csv', header=True, index=True, encoding='ms949')
+# main #
+raw_data = gbi_yes(url_list)
+raw_data.to_csv('getinfo.csv', header=True, index=True, encoding='ms949') # file name
