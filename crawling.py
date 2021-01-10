@@ -11,7 +11,12 @@ import csv
 now = datetime.now()
 week = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 today = "%s %s %s %s" %(now.year, now.month, now.day, week[now.weekday()])
-print(today)
+date = str(now.date())
+# print(today)
+# print(now.date())
+# print(type(now.date()))
+date = "%s-%s-%s" %(now.year, now.month, now.day)
+# datetype = datetime.strptime(date, '%Y-%m-%d')
 
 # html parsing, insert url, return par_url
 def makepar(url) :
@@ -101,11 +106,11 @@ def best_de_yes24(url, lineup) :
     par_url = bs(txt_url, 'html.parser')
 
     term = par_url.find('h3', 'cateTit_txt').get_text("", strip=True) # data name
-    if lineup is '01' :
+    if lineup == '01' :
         lineup = '기본순'
-    if lineup is '05' :
+    if lineup == '05' :
         lineup = '판매량'
-    if lineup is '04' :
+    if lineup == '04' :
         lineup = '신상품'
     f_name = "{0}, {1}, {2}.csv".format(term, lineup, today)
     # file name decision

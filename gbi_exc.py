@@ -1,4 +1,4 @@
-from get_book_info import gbi_yes as gy
+from get_book_info import yes24 as gy
 
 url_list = 'http://www.yes24.com/Product/Goods/75187118' #.split('\n') #이건 도서 개별 url
 rd = gy(url_list)

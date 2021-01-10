@@ -4,7 +4,6 @@ import crawling as cr
 # 서지 정보만 빨리 뽑아내고 싶을 때, url만 입력해서 뽑아낼 때 사용!
 
 ### URL 정보 ###
-url_list ="""http://www.yes24.com/Product/Goods/96195306""".split('\n')
 t_list = []
 t2_list = []
 a_list = []
@@ -19,10 +18,16 @@ size_list = []
 cate_list = []
 review_list=[]
 
-def gbi_yes(url_list) :
+def mak_url_list(code_list) :
+    url_list = []
+    for code in code_list :
+        url_list.append("http://www.yes24.com/Product/Goods/"+code)
+    return url_list
+
+def yes24(url_list) :
     for url in url_list :
     #url = url_list[0]
-        print('present url\n%s' %url)
+        print('present url: %s' %url)
         tmp_par = cr.makepar(url)
         t_list.append(tmp_par.find('h2', 'gd_name').text) # 도서명
         if tmp_par.find('h3', 'gd_nameE') is None : # 부제
@@ -35,11 +40,11 @@ def gbi_yes(url_list) :
         d_list.append(tmp_par.find('span', 'gd_date').text.replace('년 ','-').replace('월 ','-').replace('일','')) #출간일
         pr_list.append(int(tmp_par.find_all('em', 'yes_m')[0].text.replace('원','').replace(',',''))) #tmp_par.find_all('em', 'yes_m') = 정가 할인가 전부 찾을때
         if tmp_par.find('span','gd_sellNum') is None : sp_list.append(0)
-        else : sp_list.append(int(tmp_par.find('span','gd_sellNum').get_text(' ',strip=True).split(' ')[2])) #셀링포인트
+        else : sp_list.append(tmp_par.find('span','gd_sellNum').get_text(' ',strip=True).split(' ')[2]) #셀링포인트
         tmp_info = " ".join(tmp_par.find('tbody','b_size').find_all('td')[1].text.split(' | '))
         a = tmp_info.replace('쪽','').replace('g','').replace('mm','').split(' ') #쪽무게판형
         page_list.append(a[0])
-        print(len(a))
+        # print(len(a))
         if len(a) < 3:
             weight_list.append('')
             size_list.append(a[1])
@@ -76,7 +81,7 @@ def gbi_yes(url_list) :
 
 # 부제
 # 지음 | 쪽 | 원 from 알라딘
-def gbi_al() :
+def aladin() :
     url_list = """https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=117994090
 https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=116524331
 https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=118873240&start=slayer
@@ -92,6 +97,4 @@ https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=116048223&start=slayer""".spl
         print(t)
         print(t2+'\n'+a+' | '+n+' | '+p)
 
-# main #
-raw_data = gbi_yes(url_list)
-raw_data.to_csv('getinfo.csv', header=True, index=True, encoding='ms949') # file name
+# main

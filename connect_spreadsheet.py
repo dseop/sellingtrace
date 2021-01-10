@@ -1,9 +1,12 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-scope = [
-'https://spreadsheets.google.com/feeds',
-'https://www.googleapis.com/auth/drive',
-]
+print('ok')
+
+import crawling as cr
+import get_book_info as gbi
+print('ok')
+
+scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 json_file_name = 'spreadsheet-301116-287ef71ecaa0.json'
 credentials = ServiceAccountCredentials.from_json_keyfile_name(json_file_name, scope)
 gc = gspread.authorize(credentials)
@@ -11,16 +14,27 @@ gc = gspread.authorize(credentials)
 spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1Mddr6g9Oid4_2R5mwQRC4N8NB05uLaO0jtT7SxTXwZc/edit#gid=0'
 
 doc = gc.open_by_url(spreadsheet_url) # load spread sheet
-worksheet = doc.worksheet('시트1') # select sheet
 
 # # 이런 식으로 불러올 수도 있나봄
-# gc1 = gc.open("python-linkage-sample").worksheet('시트1')
-# gc2 = gc1.get_all_values()
-# print(gc2)
+    # gc1 = gc.open("python-linkage-sample").worksheet('시트1')
+    # gc2 = gc1.get_all_values()
+    # print(gc2)
 
-# load cell
-cell_data = worksheet.acell('B1').value
-print(cell_data)
+worksheet = doc.worksheet('YES24') # select sheet
+list_of_lists = worksheet.get_all_values()
+# print(list_of_lists)
+# list_of_lists = ['날짜', '코드'], ['', '96195306'], ['2021-1-10', '15,414']
+
+# http://www.yes24.com/Product/Goods/96195306
+# cell_data = worksheet.acell('B2').value # load 1 cell 
+code_list = list_of_lists[1][1:] # list
+# values_list = worksheet.row_values(1) # load row
+print(code_list)
+
+raw_data = gbi.yes24(gbi.mak_url_list(code_list)) # raw_data는 모든 yes24의 책 정보를 다 가져옴 # pandas Series type
+new_data = list(raw_data['지수']) # list
+new_data.insert(0, cr.date) # insert today's date
+worksheet.append_row(new_data) # insert row below end line
 
 # # load row
 # row_data = worksheet.row_values(1)
@@ -38,16 +52,13 @@ print(cell_data)
 
 # # 범위에서 각 셀 값 가져오기
 # for cell in range_list:
-#     print(cell.value)
+#     print(cell.value) 
 
-
-# # * insert data * #
-
+# # insert data
 # # save cell
 # worksheet.update_acell('B1', 'b1 updated')
 
-# # save row
-# worksheet.append_row(['new1', 'new2', 'new3', 'new4']) # end line 
+# worksheet.append_row(['new1','new2','new3','new4'])
 # worksheet.insert_row(['new1', 'new2', 'new3', 'new4'], 4) # specific line
 
 # # resize sheet size
