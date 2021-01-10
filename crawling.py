@@ -11,13 +11,15 @@ import csv
 now = datetime.now()
 week = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 today = "%s %s %s %s" %(now.year, now.month, now.day, week[now.weekday()])
+print(today)
 
+# html parsing, insert url, return par_url
 def makepar(url) :
     if url is None :
         return 0
     else :
         re_url = requests.get(url)
-        #re_url.encoding = 'ms949'  # 이게 너무 중요했다..... 하.....
+        # re_url.encoding = 'ms949'  # important
         par_url = bs(re_url.text, 'html.parser')
         return par_url
 
@@ -29,7 +31,6 @@ def makeresult(t_list, a_list, pu_list, pr_list, d_list, t_num) :
                    'date': d_list,
                    'selling point': t_num})
     return raw_data
-
 
 def search_key(par_url) :
 
@@ -57,6 +58,7 @@ def search_key(par_url) :
             t_num.append(a.split(' ')[1]) # 그걸 split(' ') 으로 쪼개면 리스트 두번째 문자열이 t_number
 
     return t_list, a_list, pu_list, pr_list, d_list, t_num
+
 def best_yes24(url, sellpoint=1, tracing_switch=0) : #ts= t num switch
 
     par_url = makepar(url)
@@ -90,6 +92,7 @@ def best_yes24(url, sellpoint=1, tracing_switch=0) : #ts= t num switch
             url_list.append('http://www.yes24.com' + par_url.find_all('td', 'goodsTxtInfo').find('a', href=True)['href'])
 
     return t_list, a_list, pu_list, pr_list, d_list, t_num, url_list
+
 def best_de_yes24(url, lineup) :
 
     in_url = url
@@ -130,6 +133,7 @@ def best_de_yes24(url, lineup) :
         pr_list.append(i.em.text)
 
     return f_name, t_list, a_list, pu_list, pr_list, d_list
+
 def sell_p_cr(url, tracing_switch=0) : # selling point crawler
     re_url = requests.get(url)
     re_url.encoding='ms949' #이게 너무 중요했다..... 하.....
@@ -148,9 +152,12 @@ def sell_p_cr(url, tracing_switch=0) : # selling point crawler
         f.close()
 
     return selling_point
+
 def add(fn, rd) : # 추가할 때
     rd.to_csv(fn, header=False, index=True, encoding='ms949', mode='a')
+
 def mk(fn, rd) :
     rd.to_csv(fn, header=True, index=True, encoding='ms949')
+
 def tag(fn, rd) :
     rd.to_csv(fn.replace('.csv','tag.csv'), header=['tag','count'], index=False, encoding='ms949')
