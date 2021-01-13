@@ -1,18 +1,8 @@
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
 import crawling as cr
 import get_book_info as gbi
+import connect_sheet as cs
 
-print('open the sheet')
-scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-json_file_name = 'spreadsheet-301116-287ef71ecaa0.json'
-credentials = ServiceAccountCredentials.from_json_keyfile_name(json_file_name, scope)
-gc = gspread.authorize(credentials)
-
-spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1Mddr6g9Oid4_2R5mwQRC4N8NB05uLaO0jtT7SxTXwZc/edit#gid=0'
-doc = gc.open_by_url(spreadsheet_url) # load spread sheet
-print('ok')
+doc = cs.open_sheet()
 
 # # 이런 식으로 불러올 수도 있나봄
     # gc1 = gc.open("python-linkage-sample").worksheet('시트1')
@@ -33,12 +23,14 @@ print(code_list)
 print('ok')
 
 print('make new data')
-raw_data = gbi.yes24(gbi.mak_url_list(code_list)) # raw_data는 모든 yes24의 책 정보를 다 가져옴 # pandas Series type
+raw_data = gbi.yes24(cr.yes24_code_to_url(code_list)) # raw_data는 모든 yes24의 책 정보를 다 가져옴 # pandas Series type
 new_data = list(raw_data['지수']) # list
 new_data.insert(0, cr.date) # insert today's date
 print(new_data)
 worksheet.append_row(new_data) # insert row below end line
 print('ok')
+
+
 
 # # load row
 # row_data = worksheet.row_values(1)

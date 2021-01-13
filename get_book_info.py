@@ -18,12 +18,6 @@ size_list = []
 cate_list = []
 review_list=[]
 
-def mak_url_list(code_list) :
-    url_list = []
-    for code in code_list :
-        url_list.append("http://www.yes24.com/Product/Goods/"+code)
-    return url_list
-
 def yes24(url_list) :
     for url in url_list :
     #url = url_list[0]

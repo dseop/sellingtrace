@@ -18,6 +18,12 @@ date = str(now.date())
 date = "%s-%s-%s" %(now.year, now.month, now.day)
 # datetype = datetime.strptime(date, '%Y-%m-%d')
 
+def yes24_code_to_url(code_list) :
+    url_list = []
+    for code in code_list :
+        url_list.append("http://www.yes24.com/Product/Goods/"+code)
+    return url_list
+
 # html parsing, insert url, return par_url
 def makepar(url) :
     if url is None :
