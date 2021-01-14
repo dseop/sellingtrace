@@ -13,10 +13,11 @@ def yes24() :
     worksheet = doc.worksheet('RANK_YES') # select sheet
 
     url = "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80&PageNumber="
-    
+    print('get daily BEST 320...')
+
     rank = 0
     row_list = []
-    for i in [1, 2, 3, 4] :
+    for i in [1, 2, 3, 4, 5] : # 400위까지
         tmp_url = url+('%s' %i)
         par_url = cr.makepar(tmp_url)
         for good_info in par_url.find_all('td', 'goodsTxtInfo') :
@@ -45,8 +46,8 @@ def yes24() :
             row_list.append(info_row)
     worksheet.append_rows(row_list)
 
-    print(len(row_list)) # 1day 320 / 1year 116800 / 2year 233600 (이정도 모으기 전에 그만두지 않을까?)
-    # 어쩄거나 데이터를 정리하려면, DB를 만드는 게 좋다. 스키마가 딱히 필요 없을 것 같다.
+    print(len(row_list), ' data insert complete!') # 1day 320 / 1year 116800 / 2year 233600 (이정도 모으기 전에 그만두지 않을까?)
+    # 어쩄거나 데이터를 정리하려면, DB를 만드는 게 좋다.
     # 320위에서 벗어나버리면 점점 안 보게 될 것. 내가 선택적으로 그 때 그 때 데이터를 보는 게 낫다.
     # 일단은 스프레드시트? 피봇테이블로 감당할 수 있을까..?
     return 0
@@ -59,5 +60,3 @@ def kyobo() : return 0
 
 def aladin() : return 0
     # https://www.aladin.co.kr/shop/common/wbest.aspx?BestType=Bestseller&BranchType=1&CID=170&page=1&cnt=1000&SortOrder=1
-
-yes24()
