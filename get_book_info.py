@@ -16,7 +16,7 @@ page_list = []
 weight_list = []
 size_list = []
 cate_list = []
-review_list=[]
+review_list=[]    
 
 def yes24(url_list) :
     for url in url_list :
