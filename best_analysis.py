@@ -42,12 +42,11 @@ def yes24(url) :
             price = int(good_info.find_all('p')[1].get_text().split('원')[0].replace(',',''))
 
             info_row = rank,code,title,au,pu,date,price,cr.date,"http://www.yes24.com"+code_url    
-            print(info_row)
-            # worksheet.append_row(info_row)
             row_list.append(info_row)
+        print(i, "page complete!")
     worksheet.append_rows(row_list)
 
-    print(len(row_list), ' data insert complete!') # 1day 320 / 1year 116800 / 2year 233600 (이정도 모으기 전에 그만두지 않을까?)
+    print(len(row_list), ' data insert complete! - ', url[0])
     # 어쩄거나 데이터를 정리하려면, DB를 만드는 게 좋다.
     # 320위에서 벗어나버리면 점점 안 보게 될 것. 내가 선택적으로 그 때 그 때 데이터를 보는 게 낫다.
     # 일단은 스프레드시트? 피봇테이블로 감당할 수 있을까..?
