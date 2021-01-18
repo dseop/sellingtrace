@@ -1,15 +1,3 @@
-import sqlite3
-import pandas as pd
-
-def open_db() :
-    con = sqlite3.connect("rank_DB.db")
-    c = con.cursor()
-    return con, c
-
-def close_db(con) :
-    con.commit()
-    con.close()
-
 con, c = open_db()
 
 c.execute("CREATE TABLE rank_table('rank' int, code int, today text)")
@@ -19,3 +7,8 @@ c.execute("SELECT * FROM test")
 c.fetchone()
 c.fetchall()
 
+import sqlite3
+con = sqlite3.connect("rank_DB.db")
+c = con.cursor()
+c.execute("SELECT * FROM rank_table")
+c.fetchall()

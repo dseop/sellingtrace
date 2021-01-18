@@ -1,10 +1,12 @@
 # https://www.notion.so/7cadd2f2f5b64f208fa9cfbde4cfcf30#3c22dc1cd4b74b81a413197381dbec04
 # rank analysis
 
+# import sqlite3
 import crawling as cr
 import connect_sheet as cs
 
-# from keyword_analysis import get_tags_okt
+# con = sqlite3.connect("rank_DB.db")
+# c = con.cursor()
 
 def yes24(url) :
     
@@ -18,6 +20,7 @@ def yes24(url) :
 
     rank = 0
     row_list = []
+    # db_list = [] # about DB
     for i in [1, 2, 3, 4, 5] : # 400위까지
         tmp_url = url[1]+('%s' %i)
         par_url = cr.makepar(tmp_url)
@@ -43,8 +46,17 @@ def yes24(url) :
 
             info_row = rank,code,title,au,pu,date,price,cr.date,"http://www.yes24.com"+code_url    
             row_list.append(info_row)
+
+            # db_row = rank,code,cr.date # about DB
+            # db_list.append(db_row) # about DB
+            
         print(i, "page complete!")
     worksheet.append_rows(row_list)
+    print(db_list) # about DB
+
+    # c.executemany("INSERT INTO rank_table VALUES (?,?,?)", db_list) # about DB
+    # con.commit() # about DB
+    # con.close() # about DB
 
     print(len(row_list), ' data insert complete! - ', url[0])
     # 어쩄거나 데이터를 정리하려면, DB를 만드는 게 좋다.
