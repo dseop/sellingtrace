@@ -23,7 +23,7 @@ def yes24(url) :
     book_db_list = []
 
     # page 1~5, get bestseller list
-    for i in [1] : # , 2, 3, 4, 5] : # 400위까지
+    for i in [2, 3, 4, 5] : # 400위까지
         tmp_url = url[1]+('%s' %i)
         par_url = cr.makepar(tmp_url)
         for good_info in par_url.find_all('td', 'goodsTxtInfo') :
@@ -50,7 +50,7 @@ def yes24(url) :
             info_row = rank,code,title,au,pu,date,price,cr.date,"http://www.yes24.com"+code_url    
             row_list.append(info_row)
 
-            # into DB data
+            # into DB data(rank_DB, book_DB)
             rank_db_row = rank, code, cr.date
             rank_db_list.append(rank_db_row)
 
@@ -59,22 +59,24 @@ def yes24(url) :
             
         print(i, "page complete!")
     # insert into Spreadsheet
-    # worksheet.append_rows(row_list)
+    worksheet.append_rows(row_list)
 
     # insert into rank_DB
     # print(rank_db_list) # check DB
+    # c.execute("")
     # c.execute("CREATE TABLE rank_table_"+url[0]+"('rank' int, code int, today text)")
     # sql_insert_rank = "INSERT INTO rank_table_"+url[0]+" VALUES (?,?,?)"
     # c.executemany(sql_insert_rank, rank_db_list)
 
-    print(book_db_list)
     # insert into book_DB
+    
     # 중복처리 해결 필요 #
+    # print(book_db_list)
     # c.execute("CREATE TABLE book_table('code' int, 'title' text, 'au' text, 'pu' text, 'date' text, 'price' text)")
     # c.executemany("INSERT INTO book_table VALUES (?,?,?,?,?,?)", book_db_list)
     
-    #con.commit()
-    con.close()
+    # con.commit()
+    # con.close()
 
     print(len(row_list), ' data insert complete! - ', url[0])
     
