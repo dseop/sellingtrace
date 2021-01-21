@@ -9,32 +9,24 @@ doc = cs.open_sheet()
     # gc2 = gc1.get_all_values()
     # print(gc2)
 
-print('make code_list...')
-sheetname = 'YES24'
-print('sheetname: ', sheetname)
-print('get all values. code list from B2:2.')
-worksheet = doc.worksheet(sheetname) # select sheet
-list_of_lists = worksheet.get_all_values()
-# print(list_of_lists)
-# list_of_lists = ['날짜', '코드'], ['', '96195306'], ['2021-1-10', '15,414']
+worksheet = doc.worksheet('YES24') # select sheet, sheetname is YES24
+list_of_lists = worksheet.get_all_values() # get all sheet values / type : list
 
-# http://www.yes24.com/Product/Goods/96195306
+code_list = list_of_lists[1][1:] # yes24 code
+
+if cr.date == list_of_lists[-1][0] : # cr.date = today
+    print("today already done")
+else :
+    print('make new data...')
+    raw_data = gbi.yes24(cr.yes24_code_to_url(code_list)) # raw_data는 모든 yes24의 책 정보를 다 가져옴 # pandas Series type
+    new_data = list(raw_data['지수']) # list
+    new_data.insert(0, cr.date) # insert today's date
+    print('new_data: ', new_data)
+    worksheet.append_row(new_data) # insert row below end line
+    
+
 # cell_data = worksheet.acell('B2').value # load 1 cell 
-code_list = list_of_lists[1][1:] # list
 # values_list = worksheet.row_values(1) # load row
-print(code_list)
-print('code list ok!')
-
-print('make new data...')
-raw_data = gbi.yes24(cr.yes24_code_to_url(code_list)) # raw_data는 모든 yes24의 책 정보를 다 가져옴 # pandas Series type
-new_data = list(raw_data['지수']) # list
-new_data.insert(0, cr.date) # insert today's date
-print('new_data: ', new_data)
-worksheet.append_row(new_data) # insert row below end line
-
-print('code complete!')
-
-
 
 # # load row
 # row_data = worksheet.row_values(1)
