@@ -63,8 +63,8 @@ def yes24(url) :
     worksheet.append_rows(row_list)
 
     
-    # insert into rank_table #
-    now_table = "rank_table_"+url[0] # str
+    # insert into 'rank_' table #
+    now_table = "rank_"+url[0] # str
 
     def get_table_list() :
         c.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -83,7 +83,7 @@ def yes24(url) :
 
     def create_table(count_check, table_name) : 
         if count_check == 0 :
-            c.execute("CREATE TABLE "+table_name+"('rank' int, 'code' int, 'today' text)")
+            c.execute("CREATE TABLE "+table_name+"('rank_num' int, 'code' int, 'today' text)")
 
     def insert_data(table_name, db_list) :
         insert_rank_sql = "INSERT INTO "+table_name+" VALUES (?,?,?)"
