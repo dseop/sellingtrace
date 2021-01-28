@@ -13,9 +13,6 @@ def get_table_list() :
         table_list.append(i[0])
     return table_list
 
-table_list = get_table_list()
-
-
 def check_table_list(table_name) :
     c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name="+"'"+table_name+"'")
     check = c.fetchall()
@@ -60,28 +57,42 @@ def search(keyword) :
 # c.execute(sql)
 # data = c.fetchall()
 
+rank_humanities = pd.read_sql_query("select * from rank_humanities", con)
+rank_ebiz = pd.read_sql_query("select * from rank_ebiz", con)
+# print(len(rank_ebiz.code))
 rank_economy = pd.read_sql_query("select * from rank_economy", con)
-print(rank_economy.code.dtype)
-print(rank_economy.rank_num.dtype)
-rank_economy['code'] = rank_economy['code'].apply('str') 
-rank_economy['rank_num'] = rank_economy['rank_num'].apply('str') 
-print(rank_economy.code.dtype)
-print(rank_economy.rank_num.dtype)
-print(rank_economy.columns.values)
+# rank_economy['code'] = rank_economy['code'].apply('str') 
+# rank_economy['rank_num'] = rank_economy['rank_num'].apply('str') 
+
 
 book = pd.read_sql_query("select * from book_table", con)
-print(book.code.dtype)
-book['code'] = book['code'].apply('str')
-print(book.code.dtype)
-print(book.columns.values)
+# book['code'] = book['code'].apply('str')
 
-pd.merge(rank_economy, book, left_on='code', right_on='code', how='left')
-# rank_economy.join(book,)
+new_df = pd.merge(rank_economy, book, on='code', how='left')
+# print(len(new_df.code))
+ 
+print("[", pd.unique(new_df.today)[0],"~",pd.unique(new_df.today)[-1],"]")
 
-df_data = df(data)
-# print(type(df_data))
-print(df_data.values)
-print(len(data))
+# 오늘자 베스트 검색 
+today = pd.Timestamp.today().strftime("%Y-%m-%d")
+print("today:", today)
+today_df = new_df[new_df['today'] == today]
+print("today's data:", today_df)
+
+# 키워드로 검색
+print("<제목 검색 결과>")
+keyword = "무작정 따라하기" 
+search_df = new_df[new_df['title'].str.contains(keyword, regex=False)]
+print(search_df.sort_values('code'))
+
+# 특정 코드 뽑아보기
+code = 85156209, 45008491
+# spec_df = search_df.where(search_df['code'] == code)
+for c in code :
+    spec_df = new_df[new_df["code"] == c]
+    print(pd.unique(spec_df.title))
+    print(spec_df)
+
 
 con.close()
 

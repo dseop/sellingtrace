@@ -1,4 +1,4 @@
-# get info about 1book 
+# get info about 1book (유사 경쟁서 정보 정리할 때 유용)
 from bs4 import BeautifulSoup as bs
 import pyperclip
 from selenium import webdriver

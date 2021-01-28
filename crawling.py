@@ -3,6 +3,7 @@
 
 from bs4 import BeautifulSoup as bs
 from pandas import DataFrame as df
+import pandas as pd
 import requests
 from datetime import datetime
 
@@ -15,7 +16,6 @@ date = str(now.date())
 # print(today)
 # print(now.date())
 # print(type(now.date()))
-date = "%s-%s-%s" %(now.year, now.month, now.day)
 # datetype = datetime.strptime(date, '%Y-%m-%d')
 
 def yes24_code_to_url(code_list) :
