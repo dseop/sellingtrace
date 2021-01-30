@@ -21,10 +21,11 @@ def yes24(url) :
     row_list = []
     rank_db_list = [] # make DB list
     book_db_list = []
-
-    # page 1~5, get bestseller list
+    collect_date = cr.date
+    
+    # page 1~5, get bestseller list #
     for i in [1, 2, 3, 4, 5] : # 400위까지 # row_list, rank_db_list, book_db_list
-        tmp_url = url[1]+('%s' %i)
+        tmp_url = url[1]+('&PageNumber=%s' %i)
         par_url = cr.makepar(tmp_url)
         for good_info in par_url.find_all('td', 'goodsTxtInfo') :
             
@@ -43,28 +44,31 @@ def yes24(url) :
                 au = 'need check'
                 pu = 'need check'
             
-            date = good_info.find('div', 'aupu').get_text('',strip=True).split('| ')[-1]
+            publish_date = good_info.find('div', 'aupu').get_text('',strip=True).split('| ')[-1]
             price = int(good_info.find_all('p')[1].get_text().split('원')[0].replace(',',''))
 
-            # into Spreadsheet data
-            info_row = rank,code,title,au,pu,date,price,cr.date,"http://www.yes24.com"+code_url    
+            # make row_list for Spreadsheet data
+            info_row = rank,code,title,au,pu,publish_date,price,collect_date,"http://www.yes24.com"+code_url    
             row_list.append(info_row)
 
-            # into DB data(rank_DB, book_DB)
-            rank_db_row = rank, code, cr.date
+            # make db_list for DB(rank_DB, book_DB)
+            rank_db_row = rank, code, collect_date
             rank_db_list.append(rank_db_row)
 
-            book_db_row = code, title, au, pu, date, price
+            book_db_row = code, title, au, pu, publish_date, price
             book_db_list.append(book_db_row)
             
         print(url[0], i, "page complete!")
     
     # insert into Spreadsheet #
-    worksheet.append_rows(row_list)
-
+    if collect_date != worksheet.col_values(8)[-1] : # collect_date column last data
+        worksheet.append_rows(row_list)
+        print("insert into spreadsheet DONE!")
+    else : print("already inserted to spreadsheet")
     
-    # insert into 'rank_' table #
+    # processing table name #
     now_table = "rank_"+url[0] # str
+    print("processing table name:", now_table)
 
     def get_table_list() :
         c.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -74,67 +78,65 @@ def yes24(url) :
             table_list.append(i[0])
         return table_list
         
-    def check_table_list(table_name) :
+    def check_table_in_db(table_name) :
         c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name="+"'"+table_name+"'")
         check = c.fetchall()
         count_check = check[0][0] # 있으면 1, 없으면 0
         print(table_name+": ", count_check)
         return count_check
 
-    def create_table(count_check, table_name) : 
-        if count_check == 0 :
-            c.execute("CREATE TABLE "+table_name+"('rank_num' int, 'code' int, 'today' text)")
-
-    def insert_data(table_name, db_list) :
-        insert_rank_sql = "INSERT INTO "+table_name+" VALUES (?,?,?)"
-        c.executemany(insert_rank_sql, db_list)
-
-    def check_table(table_name) :
+    def check_len_table(table_name) :
         c.execute("SELECT * FROM "+table_name)
         check = c.fetchall()
         print(len(check))
+
+    def insert_rank_data(table_name, db_list) :
+        insert_rank_sql = "INSERT INTO "+table_name+" VALUES (?,?,?)"
+        c.executemany(insert_rank_sql, db_list)
+
+    def insert_book_data(table_name, db_list) :
+        insert_book_sql = "INSERT OR REPLACE INTO book_table VALUES (?,?,?,?,?,?)"
+        c.executemany(insert_book_sql, db_list)
 
     def get_table(table_name) :
         c.execute("SELECT * FROM "+table_name)
         data = c.fetchall()
         return data
     
-    print("before")
-    get_table_list()
-    check_table(now_table)
+    # check / create rank table & insert data #
+    
+    if check_table_in_db(now_table) == 0 : # 있으면 1, 없으면 0 / return 0 or 1
+        print("create new table...", now_table)
+        print("before table list\n", get_table_list())
+        c.execute("CREATE TABLE {0}('rank_num' int, 'code' int, 'collect_date' text)".format(now_table))
+        print("after table list\n:", get_table_list())
 
-    count_check = check_table_list(now_table) # 있으면 1, 없으면 0
-    create_table(count_check, now_table)
+    ################################## 여기서 부터
+    if get_table(now_table)
 
-    insert_data(now_table, rank_db_list)
 
-    print("after")
-    check_table(now_table)
+    print("before len:", check_len_table(now_table))
+    insert_rank_data(now_table, rank_db_list)
+    print("after len:", check_len_table(now_table))
 
     # insert into book_table #
+    insert_book_data(now_table, book_db_list)
     
-    if check_table_list("book_table") == 0 :
-        c.execute("""CREATE TABLE book_table(
-        'code' int PRIMARY KEY, 'title' text, 'au' text, 'pu' text, 'date' text, 'price' text
-        )""")
 
-    insert_book_sql = "INSERT OR REPLACE INTO book_table VALUES (?,?,?,?,?,?)"
-    c.executemany(insert_book_sql, book_db_list)
-    
     con.commit()
-
     print(len(row_list), ' data insert complete! - ', url[0])
 
     return row_list, rank_db_list, book_db_list
 
-url = "economy", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80&PageNumber=" # 경제경영
-yes24(url)
+url_list = [
+    # ("economy", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80"), # 경제경영
+    ("economy_invest", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025010&sumgb=06&FetchSize=80"), # 경제경영 > 투자/재테크
+    ("economy_ebiz", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025011&sumgb=06&FetchSize=80"), # 경제경영 > 인터넷 비즈니스
+    ("humanities", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001019&sumgb=06&FetchSize=80") # 인문    
+]
 
-url = "humanities", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001019&sumgb=06&FetchSize=80&PageNumber=" # 인문
-yes24(url)
-
-url = "ebiz", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025011&sumgb=06&FetchSize=80&PageNumber=" # 인터넷 비즈니스
-yes24(url)
+for url in url_list :
+    yes24(url)
 
 def kyobo() : return 0
     # URL request impossible(responsive web)
