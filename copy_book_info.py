@@ -5,7 +5,8 @@ from selenium import webdriver
 driver = webdriver.Chrome()
 
 url = pyperclip.paste()
-if "http://" not in url :
+
+if "http://" not in url : # search by title
     driver.get("http://www.yes24.com/Main/default.aspx")
     driver.find_element_by_name("query").send_keys(url)
     driver.find_element_by_css_selector("#yesSForm .schBtn button").click()
@@ -24,7 +25,7 @@ t = par.find("div","gd_titArea").get_text(" ", strip=True) # title
 apd = par.find("span", "gd_pubArea").get_text(" ", strip=True) # author / publisher / date
 p = par.find("div", "gd_infoTb").tr.td.span.text # price
 s = par.find("span", "gd_sellNum").get_text(" ", strip=True).split(" ")[2] # point
-i = par.findAll("td", "txt lastCol")[1].get_text(" ", strip=True)
+i = par.findAll("td", "txt lastCol")[1].get_text(" ", strip=True).replace("*","x")
 isbn = par.findAll("td", "txt lastCol")[2].get_text(" ", strip=True) # = par.find(text="ISBN13").parent.parent.td.text
 
 raw = str(t+"\n"+apd+" | "+s+"\n"+i+" | "+p+"\n"+url)
