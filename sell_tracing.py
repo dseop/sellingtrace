@@ -2,7 +2,7 @@ import crawling as cr
 import get_book_info as gbi
 import connect_sheet as cs
 
-doc = cs.open_sheet()
+doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1Mddr6g9Oid4_2R5mwQRC4N8NB05uLaO0jtT7SxTXwZc/edit#gid=0") # 판매지수 추적 파일
 
 # # 이런 식으로 불러올 수도 있나봄
     # gc1 = gc.open("python-linkage-sample").worksheet('시트1')
