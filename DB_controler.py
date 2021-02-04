@@ -1,6 +1,6 @@
 import sqlite3
 
-# DB connect    
+# DB connect
 con = sqlite3.connect("rank_DB.db")
 c = con.cursor()
 
@@ -16,7 +16,6 @@ def check_table_in_db(table_name) :
     c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name="+"'"+table_name+"'")
     check = c.fetchall()
     count_check = check[0][0] # 있으면 1, 없으면 0
-    print(table_name+": ", count_check)
     return count_check
 
 def check_len_table(table_name) :

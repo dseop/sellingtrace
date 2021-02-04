@@ -3,7 +3,8 @@
 
 import sqlite3
 import crawling as cr
-import connect_sheet as cs
+import connect_sheet as cs 
+# doc = cs.open_sheet("url") / worksheet = doc.worksheet("sheet_name")
 
 # DB connect    
 con = sqlite3.connect("rank_DB.db")
@@ -11,12 +12,7 @@ c = con.cursor()
 
 def yes24(url) :
 
-    # Spreadsheet connect
-    doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1Mddr6g9Oid4_2R5mwQRC4N8NB05uLaO0jtT7SxTXwZc/edit#gid=0")
-    worksheet = doc.worksheet('RANK_YES_'+url[0]) # select sheet
-    
-    print('get daily %s BEST 400' % (url[0]))
-
+    print("get rank data from YES24... / {0}".format(url[0]))
     rank = 0
     row_list = []
     rank_db_list = [] # make DB list
@@ -60,15 +56,19 @@ def yes24(url) :
             
         print(url[0], i, "page complete!")
     
+    # processing table name #
+    now_table = "rank_"+url[0] # str
+    print("now table name: {0} / number of data: {1}".format(now_table, len(row_list)))
+
+    # spreadsheet connect #
+    doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1Mddr6g9Oid4_2R5mwQRC4N8NB05uLaO0jtT7SxTXwZc/edit#gid=0")
+    worksheet = doc.worksheet('RANK_YES_'+url[0]) # select sheet
+
     # insert into Spreadsheet #
     if collect_date != worksheet.col_values(8)[-1] : # collect_date column last data
         worksheet.append_rows(row_list)
-        print("insert into spreadsheet DONE!")
-    else : print("already inserted to spreadsheet")
-    
-    # processing table name #
-    now_table = "rank_"+url[0] # str
-    print("now table name:", now_table)
+        print("DONE! : spreadsheet")
+    else : print("already inserted : spreadsheet")
 
     def get_table_list() :
         c.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -79,27 +79,26 @@ def yes24(url) :
         return table_list
         
     def check_table_in_db(table_name) :
-        c.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name="+"'"+table_name+"'")
+        c.execute("""SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{0}'""".format(table_name))
         check = c.fetchall()
         count_check = check[0][0] # 있으면 1, 없으면 0
-        print(table_name+": ", count_check)
         return count_check
 
-    def check_len_table(table_name) :
-        c.execute("SELECT * FROM "+table_name)
-        check = c.fetchall()
-        print(len(check))
+    def get_last_date(table_name) :
+        c.execute("""SELECT * FROM {0} ORDER BY collect_date DESC LIMIT 1""".format(now_table))
+        data = c.fetchall()
+        return data[0][-1]
 
     def insert_rank_data(table_name, db_list) :
-        insert_rank_sql = "INSERT INTO "+table_name+" VALUES (?,?,?)"
+        insert_rank_sql = "INSERT INTO {0} VALUES (?,?,?)".format(table_name)
         c.executemany(insert_rank_sql, db_list)
 
-    def insert_book_data(table_name, db_list) :
+    def insert_book_data(db_list) :
         insert_book_sql = "INSERT OR REPLACE INTO book_table VALUES (?,?,?,?,?,?)"
         c.executemany(insert_book_sql, db_list)
 
     def get_table(table_name) :
-        c.execute("SELECT * FROM "+table_name)
+        c.execute("SELECT * FROM {0}".format(table_name))
         data = c.fetchall()
         return data
     
@@ -107,24 +106,21 @@ def yes24(url) :
     
     if check_table_in_db(now_table) == 0 : # 있으면 1, 없으면 0 / return 0 or 1
         print("create new table...", now_table)
-        print("before table list\n", get_table_list())
+        print("[before table list]\n", get_table_list())
         c.execute("CREATE TABLE {0}('rank_num' int, 'code' int, 'collect_date' text)".format(now_table))
-        print("after table list\n:", get_table_list())
+        print("[after table list]\n:", get_table_list())
 
-    ################################## 여기서 부터
-    if get_table(now_table)
-
-    print("before len:", check_len_table(now_table))
-    insert_rank_data(now_table, rank_db_list)
-    print("after len:", check_len_table(now_table))
-
-    # insert into book_table #
-    insert_book_data(now_table, book_db_list)
-    
+    if get_last_date(now_table) != collect_date :
+        insert_book_data(book_db_list) # insert into book_table
+        before_len = len(get_table(now_table))
+        insert_rank_data(now_table, rank_db_list)
+        after_len = len(get_table(now_table))
+        print("before_len: {0} / after_len: {1}".format(before_len, after_len))
+    else :
+        print("already inserted : DB")
 
     con.commit()
-    print(len(row_list), ' data insert complete! - ', url[0])
-
+    
     return row_list, rank_db_list, book_db_list
 
 # main #
