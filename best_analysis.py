@@ -68,7 +68,7 @@ def yes24(url) :
     
     # processing table name #
     now_table = "rank_"+url[0] # str
-    print("processing table name:", now_table)
+    print("now table name:", now_table)
 
     def get_table_list() :
         c.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -112,8 +112,7 @@ def yes24(url) :
         print("after table list\n:", get_table_list())
 
     ################################## 여기서 부터
-#    if get_table(now_table)
-
+    if get_table(now_table)
 
     print("before len:", check_len_table(now_table))
     insert_rank_data(now_table, rank_db_list)
@@ -127,6 +126,8 @@ def yes24(url) :
     print(len(row_list), ' data insert complete! - ', url[0])
 
     return row_list, rank_db_list, book_db_list
+
+# main #
 
 url_list = [
     ("economy", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80"), # 경제경영
