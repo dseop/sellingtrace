@@ -9,24 +9,30 @@ from datetime import datetime
 # doc = cs.open_sheet("url") / worksheet = doc.worksheet("sheet_name")
 
 # DB connect    
+# con = sqlite3.connect("rank_DB.db")
 con = sqlite3.connect("rank_DB.db")
 c = con.cursor()
 
 def yes24(url) :
 
-    print("get rank data from YES24... / {0}".format(url[0]))
+    print("get rank data from YES24...")
+    now_table = "rank_{0}".format(url[0]) # str # processing table name
+    collect_date = cr.date
+    print("now table name: {0} / collect_date: {1}".format(url[0], collect_date))
+
+    # make rank_num, lists
     rank = 0
     row_list = []
     rank_db_list = [] # make DB list
     book_db_list = []
-    collect_date = cr.date
-    
+
     # page 1~5, get bestseller list #
     for i in [1, 2, 3, 4, 5] : # 400위까지 # row_list, rank_db_list, book_db_list
         tmp_url = url[1]+('&PageNumber=%s' %i)
         par_url = cr.makepar(tmp_url)
         for good_info in par_url.find_all('td', 'goodsTxtInfo') :
             
+            # variable definition
             rank = rank+1
             code_url = good_info.find('a', href=True)['href']
             code = int(code_url.split('/')[-1]) # id
@@ -45,47 +51,54 @@ def yes24(url) :
             publish_date = good_info.find('div', 'aupu').get_text('',strip=True).split('| ')[-1]
             price = int(good_info.find_all('p')[1].get_text().split('원')[0].replace(',',''))
 
-            # make row_list for Spreadsheet data
+            # load DB / make variation column data
+            c.execute("""SELECT * FROM {0} WHERE code = {1} 
+                        ORDER BY collect_date DESC LIMIT 1""".format(now_table, code))
+            data = c.fetchall()
+            if len(data) == 0 : 
+                print("no previouse data")
+                rank_var = 0
+            else : 
+                original_rank = data[0][0]
+                rank_var = original_rank - rank
+
+            # make row_list for spreadsheet data
             info_row = rank,code,title,au,pu,publish_date,price,collect_date,"http://www.yes24.com"+code_url    
             row_list.append(info_row)
 
             # make db_list for DB(rank_DB, book_DB)
-            rank_db_row = rank, code, collect_date
+            rank_db_row = rank, code, collect_date, rank_var
             rank_db_list.append(rank_db_row)
 
             book_db_row = code, title, au, pu, publish_date, price
             book_db_list.append(book_db_row)    
         print(i, "page")
-    print("DONE!")
-    # processing table name #
-    now_table = "rank_"+url[0] # str
-    print("now table name: {0} / number of data: {1}".format(now_table, len(row_list)))
+    print("DONE! number of data: {0}".format(len(row_list)))
 
-    # spreadsheet connect #
+    # connect / insert into spreadsheet#
     doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1Mddr6g9Oid4_2R5mwQRC4N8NB05uLaO0jtT7SxTXwZc/edit#gid=0")
     worksheet = doc.worksheet('RANK_YES_'+url[0]) # select sheet
-
-    # insert into Spreadsheet #
-    if collect_date != worksheet.col_values(8)[-1] : # collect_date column last data
-        worksheet.append_rows(row_list)
+    if collect_date != worksheet.col_values(8)[-1] : # check last date
+        worksheet.append_rows(row_list) # insert into spreadsheet
         print("complete insert to spreadsheet")
     else : print("already inserted : spreadsheet")
     
-    # check / create rank table & insert data #
-    if dbc.check_table_in_db(c, now_table) == 0 : # 있으면 1, 없으면 0 / return 0 or 1
+    # check / create rank table #
+    if dbc.check_table_in_db(c, now_table) == 0 : # no table -> return 0
         print("create new table...", now_table)
         print("[before table list]\n", dbc.get_table_list(c))
         c.execute("CREATE TABLE {0}('rank_num' int, 'code' int, 'collect_date' text)".format(now_table))
         print("[after table list]\n:", dbc.get_table_list(c))
     
-    if dbc.get_last_date(c, now_table) != collect_date :
+    # insert into database #
+    if dbc.get_last_date(c, now_table) != collect_date : # check last date
         before_len = len(dbc.get_table(c, 'book_table'))
-        dbc.insert_book_data(c, book_db_list) # insert into book_table
+        dbc.insert_book_data(c, book_db_list) # insert into db / book_table
         after_len = len(dbc.get_table(c, 'book_table'))
         print("book_table before_len: {0} / after_len: {1}".format(before_len, after_len))
 
         before_len = len(dbc.get_table(c, now_table))
-        dbc.insert_rank_data(c, now_table, rank_db_list)
+        dbc.insert_rank_data(c, now_table, rank_db_list) # insert into db / rank_table
         after_len = len(dbc.get_table(c, now_table))
         print("rank_table before_len: {0} / after_len: {1}".format(before_len, after_len))
     else :
@@ -103,6 +116,9 @@ url_list = [
     ("economy_ebiz", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025011&sumgb=06&FetchSize=80"), # 경제경영 > 인터넷 비즈니스
     ("humanities", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001019&sumgb=06&FetchSize=80") # 인문    
 ]
+
+# dbc.make_new_column(c, url_list, "rank_var")
+# con.commit()
 
 for url in url_list :
     yes24(url)

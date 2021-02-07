@@ -18,7 +18,7 @@ def get_last_date(c, table_name) :
     return data[0][-1]
 
 def insert_rank_data(c, table_name, db_list) :
-    insert_rank_sql = "INSERT INTO {0} VALUES (?,?,?)".format(table_name)
+    insert_rank_sql = "INSERT INTO {0} VALUES (?,?,?,?)".format(table_name)
     c.executemany(insert_rank_sql, db_list)
 
 def insert_book_data(c, db_list) :
@@ -29,3 +29,15 @@ def get_table(c, table_name) :
     c.execute("SELECT * FROM {0}".format(table_name))
     data = c.fetchall()
     return data
+
+def get_row_by_table_code_date(c, table_name, insert_date, code) :
+    c.execute("""SELECT * FROM {0} WHERE collect_date = '{1}' AND code = {2}""".format(table_name, insert_date, code))
+    data = c.fetchall()
+    print(data)
+    return data
+
+def make_new_column(c, url_list, column_name) :
+    for i in url_list :
+        table_name = "rank_{0}".format(i[0]) # table name
+        c.execute("""ALTER TABLE {0} ADD COLUMN '{1}' TEXT""".format(table_name, column_name))
+    

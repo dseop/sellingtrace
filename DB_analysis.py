@@ -42,6 +42,7 @@ book = pd.read_sql_query("select * from book_table", con)
 
 con_df = pd.merge(rank_df, book, on='code', how='left')
 con_df['title_main']  = con_df['title'].str.split(' : ').str[0]
+print(con_df[['rank_num','title_main','rank_var']][-80:])
 # print(len(con_df.code))
 print("[", pd.unique(con_df.collect_date)[0],"~",pd.unique(con_df.collect_date)[-1],"] \n")
 
@@ -61,8 +62,8 @@ last_day_df_left = last_day_df.style.set_properties(**{'text-align': 'left'})
 last_day_df_left.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
 
 ################ 여기서부터
-print(last_day_df.loc[:,['rank_num', 'title_main']])
-display(last_day_df_left)
+# print(last_day_df.loc[:,['rank_num', 'title_main']])
+# display(last_day_df_left)
 
 # memo #
 '''
@@ -86,43 +87,45 @@ display(last_day_df_left)
 keyword = "ETF 투자 무작정 따라하기"
 # search_df = con_df[con_df['title'].str.contains(keyword, regex=False)] # search keyword
 # print(search_df.sort_values('code'))
+def search_keyword(keyword) :
+    # now only for today, but should be changed
+    # find on book table? find on rank table by specific date?
+    search_df_title = last_day_df[last_day_df['title'].str.contains(keyword, regex=False)] # search keyword from today's data
+    if len(search_df_title) == 0 : print("> 제목 검색 결과 없음")
+    else :
+        print("▼ 제목 검색 결과 : {0}".format(keyword))
+        print(search_df_title) # type(search_df) = df
+        search_df = search_df_title
 
-# now only for today, but should be changed
-# find on book table? find on rank table by specific date?
-search_df_title = last_day_df[last_day_df['title'].str.contains(keyword, regex=False)] # search keyword from today's data
-if len(search_df_title) == 0 : print("> 제목 검색 결과 없음")
-else :
-    print("▼ 제목 검색 결과 : {0}".format(keyword))
-    print(search_df_title) # type(search_df) = df
-    search_df = search_df_title
+    search_df_au = last_day_df[last_day_df['au'].str.contains(keyword, regex=False)] # search keyword from today's data
+    if len(search_df_au) == 0 : print("> 저자 검색 결과 없음")
+    else :
+        print("▼ 저자명 검색 결과 : {0}".format(keyword))
+        print(search_df_au)
+        search_df = search_df_au
 
-search_df_au = last_day_df[last_day_df['au'].str.contains(keyword, regex=False)] # search keyword from today's data
-if len(search_df_au) == 0 : print("> 저자 검색 결과 없음")
-else :
-    print("▼ 저자명 검색 결과 : {0}".format(keyword))
-    print(search_df_au)
-    search_df = search_df_au
+    # 검색 결과에서 코드 뽑아버리기
+    code_list = list(search_df['code'])
+    print(code_list)
 
-# 검색 결과에서 코드 뽑아버리기
-code_list = list(search_df['code'])
-print(code_list)
+    # 특정 코드 뽑아서 비교하기
+    code = code_list # [88406526] # 85156209 주식투자 무따기
+    # spec_df = search_df.where(search_df['code'] == code)
+    for c in code :
+        spec_df = con_df[con_df["code"] == c]
+        print(spec_df.title_main.unique())
+        rank_list = list(spec_df.rank_num)
+        # # type(spec_df.rank_num[72]) # <class 'numpy.int64'>
+        # # type(rank_list[0]) # int
+        sub_list = [0]
+        for i in range(len(rank_list)-1) :
+            sub_list.append(rank_list[i]-rank_list[i+1])
+        spec_df.loc[:,('sub')] = sub_list
+        print(spec_df.loc[:,['collect_date', 'rank_num', 'sub']])
 
-# 특정 코드 뽑아서 비교하기
-code = code_list # [88406526] # 85156209 주식투자 무따기
-# spec_df = search_df.where(search_df['code'] == code)
-for c in code :
-    spec_df = con_df[con_df["code"] == c]
-    print(spec_df.title_main.unique())
-    rank_list = list(spec_df.rank_num)
-    # # type(spec_df.rank_num[72]) # <class 'numpy.int64'>
-    # # type(rank_list[0]) # int
-    sub_list = [0]
-    for i in range(len(rank_list)-1) :
-        sub_list.append(rank_list[i]-rank_list[i+1])
-    spec_df.loc[:,('sub')] = sub_list
-    print(spec_df.loc[:,['collect_date', 'rank_num', 'sub']])
+    con.close()
 
-con.close()
+
 
 '''
 select date('now','-1 month') as before_1_month ; # 오늘부터 한 달 전
