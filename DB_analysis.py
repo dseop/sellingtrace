@@ -42,7 +42,7 @@ book = pd.read_sql_query("select * from book_table", con)
 
 con_df = pd.merge(rank_df, book, on='code', how='left')
 con_df['title_main']  = con_df['title'].str.split(' : ').str[0]
-print(con_df[['rank_num','title_main','rank_var']][-80:])
+print(con_df[['rank_num','title_main','rank_var']][-400:])
 # print(len(con_df.code))
 print("[", pd.unique(con_df.collect_date)[0],"~",pd.unique(con_df.collect_date)[-1],"] \n")
 
@@ -58,12 +58,9 @@ print("[", pd.unique(con_df.collect_date)[0],"~",pd.unique(con_df.collect_date)[
 last_day = con_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray' 
 # last_day = con_df.iloc[-1]['collect_date']
 last_day_df = con_df[(con_df['collect_date'] == last_day)]
-last_day_df_left = last_day_df.style.set_properties(**{'text-align': 'left'})
-last_day_df_left.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
-
-################ 여기서부터
-# print(last_day_df.loc[:,['rank_num', 'title_main']])
-# display(last_day_df_left)
+rank_var_df = last_day_df[(last_day_df['rank_var'] > 5)]
+print(rank_var_df[['rank_num', 'title_main', 'rank_var']])
+### 이거 표로 보기 좋게 나타내는 pandas 기술이 있을 거야 이거부터 진행 2021. 2. 8.
 
 # memo #
 '''
