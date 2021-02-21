@@ -1,3 +1,4 @@
+from tabulate import tabulate
 import sqlite3
 import pandas as pd
 from pandas import DataFrame as df
@@ -5,6 +6,10 @@ from pandas import DataFrame as df
 # DB connect    
 con = sqlite3.connect("rank_DB.db")
 c = con.cursor()
+
+def printprettier(df) : # https://pypi.org/project/tabulate/
+    print(tabulate(df, headers='keys', showindex=False, tablefmt='plain'))
+    return 0
 
 def search(keyword) :
     c.execute("select book_table.code, book_table.title from book_table \
@@ -29,37 +34,53 @@ if table_name == "rank_economy" : rank_df = pd.read_sql_query("select * from ran
 elif table_name == "rank_economy_invest" : rank_df = pd.read_sql_query("select * from rank_economy_invest", con)
 elif table_name == "rank_economy_ebiz" : rank_df = pd.read_sql_query("select * from rank_economy_ebiz", con)
 elif table_name == "rank_humanities" : rank_df = pd.read_sql_query("select * from rank_humanities", con)
-# rank_economy_invest = pd.read_sql_query("select * from rank_economy_invest", con)
-# rank_economy_ebiz = pd.read_sql_query("select * from rank_economy_ebiz", con)
-# rank_humanities = pd.read_sql_query("select * from rank_humanities", con)
-
-# print(len(rank_economy_ebiz.code))
-# rank_df['code'] = rank_df['code'].apply('str') 
-# rank_df['rank_num'] = rank_df['rank_num'].apply('str') 
 
 book = pd.read_sql_query("select * from book_table", con)
-# book['code'] = book['code'].apply('str')
-
 con_df = pd.merge(rank_df, book, on='code', how='left')
-con_df['title_main']  = con_df['title'].str.split(' : ').str[0]
-print(con_df[['rank_num','title_main','rank_var']][-400:])
+con_df['title_main']  = con_df['title'].str.split(' : ').str[0] # title_main is 제목, title = 제목+부제
+
 # print(len(con_df.code))
-print("[", pd.unique(con_df.collect_date)[0],"~",pd.unique(con_df.collect_date)[-1],"] \n")
+print("전체 데이터 범위 : [", pd.unique(con_df.collect_date)[0],"~",pd.unique(con_df.collect_date)[-1],"] \n")
 
-# today's best #
-#today = pd.Timestamp.today().strftime("%Y-%m-%d").replace("06","05")
-#print(today)
-#today_df = con_df[con_df['collect_date'] == today]
+############################### 데이터 범위 잡기 작업 중
+# print(con_df.dtypes)
+con_df['collect_date'] =  pd.to_datetime(con_df['collect_date'], format='%Y-%m-%d')
+# print(con_df.dtypes)
 
-# pd.set_option('display.max_row', 400)
-# pd.set_option('display.max_columns', 100)
+today_df = con_df[("2021-02-10" <= con_df['collect_date'])]
+# today_df = today_df[(con_df['collect_date'] < '2021-02-21')]
+# printprettier(today_df[['rank_num','rank_var', 'collect_date','title_main']])
 
-# last day's best #
+# last day's best 1 #
+recent_400_df = con_df[['rank_num','rank_var','title_main']][-400:]
+# printprettier(recent_400_df)
+
+# last day's best 2 #
 last_day = con_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray' 
 # last_day = con_df.iloc[-1]['collect_date']
 last_day_df = con_df[(con_df['collect_date'] == last_day)]
-rank_var_df = last_day_df[(last_day_df['rank_var'] > 5)]
-print(rank_var_df[['rank_num', 'title_main', 'rank_var']])
+
+
+# view better 1 : no tabulate #
+# with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'colheader_justify', 'left') :
+#     bottom = 15
+#     rank_var_df = last_day_df[(last_day_df['rank_var'] > bottom)]
+#     print("{0}위 보다 크게 움직인 책: {1}개".format(bottom,len(rank_var_df)))
+#     print_data = rank_var_df[['rank_num', 'rank_var', 'title_main']]
+#     print(type(print_data))
+#     print(print_data)
+
+# view better 2 : use tabulate #
+bottom = 0
+up_var_df = last_day_df[(last_day_df['rank_var'] >= bottom)]
+print("{0}위 이상 올라간 책: {1}개".format(bottom,len(up_var_df)))
+printprettier(up_var_df[['rank_var', 'rank_num', 'code', 'title_main']].sort_values(by=['rank_var'],ascending=False))
+
+top = 0
+down_var_df = last_day_df[(last_day_df['rank_var'] <= top)]
+print("{0}위 이상 내려간 책: {1}개".format(bottom,len(down_var_df)))
+printprettier(down_var_df[['rank_num', 'rank_var', 'title_main']])
+
 ### 이거 표로 보기 좋게 나타내는 pandas 기술이 있을 거야 이거부터 진행 2021. 2. 8.
 
 # memo #

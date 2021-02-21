@@ -60,7 +60,7 @@ def yes24(url) :
                 rank_var = 0
             else : 
                 original_rank = data[0][0]
-                rank_var = original_rank - rank
+                rank_var = int(original_rank - rank)
 
             # make row_list for spreadsheet data
             info_row = rank,code,title,au,pu,publish_date,price,collect_date,"http://www.yes24.com"+code_url    
