@@ -75,7 +75,7 @@ def yes24(url) :
         print(i, "page")
     print("DONE! number of data: {0}".format(len(row_list)))
 
-    # connect / insert into spreadsheet#
+    # connect / insert into spreadsheet #
     doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1Mddr6g9Oid4_2R5mwQRC4N8NB05uLaO0jtT7SxTXwZc/edit#gid=0")
     worksheet = doc.worksheet('RANK_YES_'+url[0]) # select sheet
     if collect_date != worksheet.col_values(8)[-1] : # check last date
