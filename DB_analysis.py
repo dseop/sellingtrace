@@ -7,8 +7,13 @@ from pandas import DataFrame as df
 con = sqlite3.connect("rank_DB.db")
 c = con.cursor()
 
-def printprettier(df) : # https://pypi.org/project/tabulate/
+def print__(df) : # https://pypi.org/project/tabulate/
     print(tabulate(df, headers='keys', showindex=False, tablefmt='plain'))
+    return 0
+
+def print_(df) : # https://pypi.org/project/tabulate/
+    print(tabulate(df[['rank_var', 'rank_num', 'title_main']], headers='keys', showindex=False, tablefmt='plain'))
+    # rank_num, code, collect_date, rank_var, title, au, pu, price, title_main
     return 0
 
 def search(keyword) :
@@ -36,92 +41,64 @@ elif table_name == "rank_economy_ebiz" : rank_df = pd.read_sql_query("select * f
 elif table_name == "rank_humanities" : rank_df = pd.read_sql_query("select * from rank_humanities", con)
 
 book = pd.read_sql_query("select * from book_table", con)
-con_df = pd.merge(rank_df, book, on='code', how='left')
-con_df['title_main']  = con_df['title'].str.split(' : ').str[0] # title_main is 제목, title = 제목+부제
+rank_df = pd.merge(rank_df, book, on='code', how='left') # rank_table + book_table
+rank_df['title_main']  = rank_df['title'].str.split(' : ').str[0] # title_main is 제목, title = 제목+부제
+# print(rank_df.dtypes)
 
-# print(len(con_df.code))
-print("전체 데이터 범위 : [", pd.unique(con_df.collect_date)[0],"~",pd.unique(con_df.collect_date)[-1],"] \n")
+print("수집 기간 [ {0} ~ {1} ] / 데이터 길이 [ {2} ]\n".format(\
+    pd.unique(rank_df.collect_date)[0], pd.unique(rank_df.collect_date)[-1], len(rank_df.code)))
 
-############################### 데이터 범위 잡기 작업 중
-# print(con_df.dtypes)
-con_df['collect_date'] =  pd.to_datetime(con_df['collect_date'], format='%Y-%m-%d')
-# print(con_df.dtypes)
+# set_date_range # 
+start_date = '2021-01'
+end_date = '2029-02-25'
+print("# 데이터 범위 설정 [ {0} ~ {1} ]\n".format(start_date,end_date))
+rank_df = rank_df[(rank_df['collect_date'] >= start_date) & (rank_df['collect_date'] <= end_date)]
 
-today_df = con_df[("2021-02-10" <= con_df['collect_date'])]
-# today_df = today_df[(con_df['collect_date'] < '2021-02-21')]
-# printprettier(today_df[['rank_num','rank_var', 'collect_date','title_main']])
+# last day's best #
+last_day = rank_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray' 
+# last_day = rank_df.iloc[-1]['collect_date']
+last_day_df = rank_df[(rank_df['collect_date'] == last_day)]
 
-# last day's best 1 #
-recent_400_df = con_df[['rank_num','rank_var','title_main']][-400:]
-# printprettier(recent_400_df)
+# view better : use tabulate #
+switch = 1
+if switch == 1 :
+    top = 100
+    move = 5
 
-# last day's best 2 #
-last_day = con_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray' 
-# last_day = con_df.iloc[-1]['collect_date']
-last_day_df = con_df[(con_df['collect_date'] == last_day)]
+    print("# {0} 기준".format(last_day))
+    up_var_df = last_day_df[(last_day_df['rank_var'] >= move) & (last_day_df['rank_num'] <= top)]
+    print("\n▼ {0}위 이상 올라간 책: {1}개".format(move,len(up_var_df)))
+    print__(up_var_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=['rank_var'],ascending=False))
 
+    down_var_df = last_day_df[(last_day_df['rank_var'] <= -move) & (last_day_df['rank_num'] <= top)]
+    print("\n▼ {0}위 이상 내려간 책: {1}개".format(-move,len(down_var_df)))
+    print__(down_var_df[['rank_num', 'rank_var', 'title_main']])
 
-# view better 1 : no tabulate #
-# with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'colheader_justify', 'left') :
-#     bottom = 15
-#     rank_var_df = last_day_df[(last_day_df['rank_var'] > bottom)]
-#     print("{0}위 보다 크게 움직인 책: {1}개".format(bottom,len(rank_var_df)))
-#     print_data = rank_var_df[['rank_num', 'rank_var', 'title_main']]
-#     print(type(print_data))
-#     print(print_data)
-
-# view better 2 : use tabulate #
-bottom = 0
-up_var_df = last_day_df[(last_day_df['rank_var'] >= bottom)]
-print("{0}위 이상 올라간 책: {1}개".format(bottom,len(up_var_df)))
-printprettier(up_var_df[['rank_var', 'rank_num', 'code', 'title_main']].sort_values(by=['rank_var'],ascending=False))
-
-top = 0
-down_var_df = last_day_df[(last_day_df['rank_var'] <= top)]
-print("{0}위 이상 내려간 책: {1}개".format(bottom,len(down_var_df)))
-printprettier(down_var_df[['rank_num', 'rank_var', 'title_main']])
-
-### 이거 표로 보기 좋게 나타내는 pandas 기술이 있을 거야 이거부터 진행 2021. 2. 8.
-
-# memo #
-'''
-좌로 정렬 문제, 리스트가 다 안 보이는 문제 해결 필요(400위는 쭉 훑어야지..?) -> 필요없다고 판단 시 아래 문제 해결
-랭크를 빼기한 데이터, 저장할 것인지? -> 특정 한 권에 대한 랭크를 쭉 불러와서 더하고 뺴는 일은 가능
-이거 돌린 다음 데이터 베이스에 집어 넣어야 겠다. 아니면 계산량이 너무 많아짐
-책 마다 불러와서 전체 시기에 대해서 계산하고, 이걸 전체 책에 반복하려면 굉장히 작업이 많아짐. 일수가 늘어날 수록 더 더욱 심해짐
-1) 한번 쭉 정리하는 과정에서는 전체를 계산하도록 스크립트 짜야겠지만
-2) db 입력을 위한 row를 정리하기 전에 전날 db를 불러와서 대기해
-2-2) row에서 code, title 등이 입력되고, sub(빼기) 데이터 하나를 리스트 끝에 추가하는데, 이 때 전날 db에서 이 데이터의 code를 검색해보고 데이터가 있으면 그 rank_num 에서 row의 rank_num을 빼서 값을 입력해
-2-3) 그럼 db 상에서 'sub' 열 데이터가 자연스럽게 입력된다
-
-- db 파일 각 rank 테이블 별로 sub 열을 입력해야 함(비교적 간단)
-- db에 들어가 있는 기존 데이터들의 sub를 한번 싹 입력해야 함
-- 
-
-3) 선택한 도서들의 rank 추이를 그래프로 그려볼 수 있으면 좋겠다
-'''
-
-# 키워드 검색 #
+# searching keyword #
 keyword = "ETF 투자 무작정 따라하기"
-# search_df = con_df[con_df['title'].str.contains(keyword, regex=False)] # search keyword
-# print(search_df.sort_values('code'))
-def search_keyword(keyword) :
-    # now only for today, but should be changed
-    # find on book table? find on rank table by specific date?
+code = 97176348
+
+if code != None :
+    print("\n▼ 코드 검색 결과 : {0} {1}".format(code, rank_df[(rank_df['code'] == code)]['title_main'].unique()))
+    print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
+
+switch = 1
+if switch == 1 :
     search_df_title = last_day_df[last_day_df['title'].str.contains(keyword, regex=False)] # search keyword from today's data
-    if len(search_df_title) == 0 : print("> 제목 검색 결과 없음")
-    else :
-        print("▼ 제목 검색 결과 : {0}".format(keyword))
-        print(search_df_title) # type(search_df) = df
-        search_df = search_df_title
+    if len(search_df_title) != 0 : 
+        print("\n▼ 제목 검색 결과 : {0}".format(keyword))
+        print__(search_df_title[['collect_date','rank_num', 'code', 'au', 'pu', 'price']]) # type(search_df) = df
 
     search_df_au = last_day_df[last_day_df['au'].str.contains(keyword, regex=False)] # search keyword from today's data
-    if len(search_df_au) == 0 : print("> 저자 검색 결과 없음")
-    else :
+    if len(search_df_au) != 0 :
         print("▼ 저자명 검색 결과 : {0}".format(keyword))
         print(search_df_au)
-        search_df = search_df_au
-
+    
+    search_df = rank_df[rank_df['title'].str.contains(keyword, regex=False)] # search keyword
+    print("\n▼ 순위 변화")
+    print__(search_df[['collect_date', 'rank_num', 'rank_var']])
+        
+elif switch == 2 :
     # 검색 결과에서 코드 뽑아버리기
     code_list = list(search_df['code'])
     print(code_list)
@@ -130,7 +107,7 @@ def search_keyword(keyword) :
     code = code_list # [88406526] # 85156209 주식투자 무따기
     # spec_df = search_df.where(search_df['code'] == code)
     for c in code :
-        spec_df = con_df[con_df["code"] == c]
+        spec_df = rank_df[rank_df["code"] == c]
         print(spec_df.title_main.unique())
         rank_list = list(spec_df.rank_num)
         # # type(spec_df.rank_num[72]) # <class 'numpy.int64'>
@@ -141,9 +118,7 @@ def search_keyword(keyword) :
         spec_df.loc[:,('sub')] = sub_list
         print(spec_df.loc[:,['collect_date', 'rank_num', 'sub']])
 
-    con.close()
-
-
+con.close()
 
 '''
 select date('now','-1 month') as before_1_month ; # 오늘부터 한 달 전
