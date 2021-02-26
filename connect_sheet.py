@@ -8,5 +8,5 @@ def open_sheet(spreadsheet_url) :
     gc = gspread.authorize(credentials)
 
     doc = gc.open_by_url(spreadsheet_url) # load spread sheet
-    print('spreadsheet_url:', spreadsheet_url)
+    # print('spreadsheet_url:', spreadsheet_url)
     return doc

@@ -2,6 +2,7 @@ from tabulate import tabulate
 import sqlite3
 import pandas as pd
 from pandas import DataFrame as df
+import connect_sheet as cs
 
 # DB connect    
 con = sqlite3.connect("rank_DB.db")
@@ -40,8 +41,8 @@ elif table_name == "rank_economy_invest" : rank_df = pd.read_sql_query("select *
 elif table_name == "rank_economy_ebiz" : rank_df = pd.read_sql_query("select * from rank_economy_ebiz", con)
 elif table_name == "rank_humanities" : rank_df = pd.read_sql_query("select * from rank_humanities", con)
 
-book = pd.read_sql_query("select * from book_table", con)
-rank_df = pd.merge(rank_df, book, on='code', how='left') # rank_table + book_table
+book_df = pd.read_sql_query("select * from book_table", con)
+rank_df = pd.merge(rank_df, book_df, on='code', how='left') # rank_table + book_table
 rank_df['title_main']  = rank_df['title'].str.split(' : ').str[0] # title_main is 제목, title = 제목+부제
 # print(rank_df.dtypes)
 
@@ -49,9 +50,9 @@ print("수집 기간 [ {0} ~ {1} ] / 데이터 길이 [ {2} ]\n".format(\
     pd.unique(rank_df.collect_date)[0], pd.unique(rank_df.collect_date)[-1], len(rank_df.code)))
 
 # set_date_range # 
-start_date = '2021-01'
+start_date = '2021-02'
 end_date = '2029-02-25'
-print("# 데이터 범위 설정 [ {0} ~ {1} ]\n".format(start_date,end_date))
+print("# 데이터 범위 설정 [ {0} ~ {1} ]".format(start_date,end_date))
 rank_df = rank_df[(rank_df['collect_date'] >= start_date) & (rank_df['collect_date'] <= end_date)]
 
 # last day's best #
@@ -62,27 +63,39 @@ last_day_df = rank_df[(rank_df['collect_date'] == last_day)]
 # view better : use tabulate #
 switch = 1
 if switch == 1 :
-    top = 100
-    move = 5
 
-    print("# {0} 기준".format(last_day))
-    up_var_df = last_day_df[(last_day_df['rank_var'] >= move) & (last_day_df['rank_num'] <= top)]
-    print("\n▼ {0}위 이상 올라간 책: {1}개".format(move,len(up_var_df)))
-    print__(up_var_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=['rank_var'],ascending=False))
+    var_setting = (150, 5) # range, var size
+    sort = 'rank_var' 
+    # sort = 'rank_num'
+    print("\n# {0} 기준".format(last_day))
+    var_df = last_day_df[(last_day_df['rank_var'] >= var_setting[1]) & (last_day_df['rank_num'] <= var_setting[0])]
+    print("\n▼ {0}위 이상 올라간 책: {1}개".format(var_setting[1],len(var_df)))
+    print__(var_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=[sort],ascending=False))
 
-    down_var_df = last_day_df[(last_day_df['rank_var'] <= -move) & (last_day_df['rank_num'] <= top)]
-    print("\n▼ {0}위 이상 내려간 책: {1}개".format(-move,len(down_var_df)))
-    print__(down_var_df[['rank_num', 'rank_var', 'title_main']])
+if switch == 2 :    
+    # rank down list
+    var_df = last_day_df[(last_day_df['rank_var'] <= -var_setting[1]) & (last_day_df['rank_num'] <= var_setting[0])]
+    print("\n▼ {0}위 이상 내려간 책: {1}개".format(-var_setting[1],len(var_df)))
+    print__(var_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=[sort],ascending=True))
+
+# book check #
+switch = 1
+if switch == 1 :
+    code = 97164569  
+    if code != None :
+        url = "http://www.yes24.com/Product/Goods/{0}".format(code)
+        title = rank_df[(rank_df['code'] == code)]['title_main'].unique()[0]
+        doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1f2yScTn1L3POs3slWOkV_QEZoNClrSypUA4roQOl5Gs/edit#gid=0")
+        worksheet = doc.worksheet(table_name)
+        code_list = list(map(int, worksheet.col_values(1)))
+        if code not in code_list :
+            worksheet.append_row((code, title, url))
+        print("\n▼ 코드 검색 결과 : {0} | {1} | {2}".format(code, title, url))
+        print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
 
 # searching keyword #
-keyword = "ETF 투자 무작정 따라하기"
-code = 97176348
-
-if code != None :
-    print("\n▼ 코드 검색 결과 : {0} {1}".format(code, rank_df[(rank_df['code'] == code)]['title_main'].unique()))
-    print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
-
-switch = 1
+keyword = "그래도 아파트를 사세요"
+switch = 0
 if switch == 1 :
     search_df_title = last_day_df[last_day_df['title'].str.contains(keyword, regex=False)] # search keyword from today's data
     if len(search_df_title) != 0 : 
