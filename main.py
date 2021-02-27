@@ -3,6 +3,6 @@ import best_analysis
 
 """
 git add *
-git commit -m 'db up'
+git commit -m 'complete'
 git push origin master
 """
