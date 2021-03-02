@@ -61,7 +61,10 @@ last_day = rank_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray
 last_day_df = rank_df[(rank_df['collect_date'] == last_day)]
 
 # view better : use tabulate #
-switch = 1
+switch = 0
+if switch == 3 :
+    print__(last_day_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=['rank_num'],ascending=True))
+
 if switch == 1 :
 
     var_setting = (150, 5) # range, var size
@@ -81,7 +84,7 @@ if switch == 2 :
 # book check #
 switch = 1
 if switch == 1 :
-    code = 97164569  
+    code = 97665510                                
     if code != None :
         url = "http://www.yes24.com/Product/Goods/{0}".format(code)
         title = rank_df[(rank_df['code'] == code)]['title_main'].unique()[0]
@@ -89,7 +92,7 @@ if switch == 1 :
         worksheet = doc.worksheet(table_name)
         code_list = list(map(int, worksheet.col_values(1)))
         if code not in code_list :
-            worksheet.append_row((code, title, url))
+            worksheet.append_row((code, title, url, pd.Timestamp.today()))
         print("\n▼ 코드 검색 결과 : {0} | {1} | {2}".format(code, title, url))
         print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
 
@@ -131,7 +134,13 @@ elif switch == 2 :
         spec_df.loc[:,('sub')] = sub_list
         print(spec_df.loc[:,['collect_date', 'rank_num', 'sub']])
 
+# 1. 내가 관심도서로 따로 등록하려고 입력한 도서들, 입력이 안 되어 있으면 스프레드시트에 추가된 일자 입력
+# 2. 내가 등록한 도서들, 일정 기간 집중 분석 ex 연속 0일 상승 중 / 지난 1주일 중 0일 상승
+
+
 con.close()
+
+
 
 '''
 select date('now','-1 month') as before_1_month ; # 오늘부터 한 달 전
