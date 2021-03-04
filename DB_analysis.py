@@ -83,7 +83,7 @@ if switch == 2 :
 
 # book check #
 switch = 1
-if switch == 1 :
+if switch == 1 : # add book to interesting list
     code = 97665510                                
     if code != None :
         url = "http://www.yes24.com/Product/Goods/{0}".format(code)
@@ -97,8 +97,8 @@ if switch == 1 :
         print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
 
 # searching keyword #
-keyword = "그래도 아파트를 사세요"
-switch = 0
+keyword = "빅 스텝"
+switch = 1
 if switch == 1 :
     search_df_title = last_day_df[last_day_df['title'].str.contains(keyword, regex=False)] # search keyword from today's data
     if len(search_df_title) != 0 : 
@@ -134,7 +134,7 @@ elif switch == 2 :
         spec_df.loc[:,('sub')] = sub_list
         print(spec_df.loc[:,['collect_date', 'rank_num', 'sub']])
 
-# 1. 내가 관심도서로 따로 등록하려고 입력한 도서들, 입력이 안 되어 있으면 스프레드시트에 추가된 일자 입력
+
 # 2. 내가 등록한 도서들, 일정 기간 집중 분석 ex 연속 0일 상승 중 / 지난 1주일 중 0일 상승
 
 
