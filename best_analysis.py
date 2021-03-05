@@ -5,6 +5,7 @@ import sqlite3
 import crawling as cr
 import connect_sheet as cs
 import DB_controler as dbc
+import sys
 from datetime import datetime
 # doc = cs.open_sheet("url") / worksheet = doc.worksheet("sheet_name")
 
@@ -14,11 +15,20 @@ con = sqlite3.connect("rank_DB.db")
 c = con.cursor()
 
 def yes24(url) :
-
+    
     print("get rank data from YES24...")
     now_table = "rank_{0}".format(url[0]) # str # processing table name
     collect_date = cr.date
     print("now table name: {0} / collect_date: {1}".format(url[0], collect_date))
+    
+    c.execute("select collect_date from rank_economy order by collect_date desc limit 1")
+    last_date = c.fetchall()
+    if collect_date == last_date[0][0] :
+        sys.exit("already excuted today!")
+    
+    print(datetime.today().time())
+    if "00:00:00" < str(datetime.today().time()) < "08:00:00" :
+        sys.exit("maybe rank info is not updated!")
 
     # make rank_num, lists
     rank = 0
@@ -61,7 +71,7 @@ def yes24(url) :
             else : 
                 original_rank = data[0][0]
                 rank_var = int(original_rank - rank)
-
+            # select collect_date from rank_economy order by collect_Date desc limit 1
             # make row_list for spreadsheet data
             info_row = rank,code,title,au,pu,publish_date,price,collect_date,"http://www.yes24.com"+code_url    
             row_list.append(info_row)
@@ -84,29 +94,52 @@ def yes24(url) :
     else : print("already inserted : spreadsheet")
     
     # check / create rank table #
-    if dbc.check_table_in_db(c, now_table) == 0 : # no table -> return 0
+    c.execute("""SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{0}'""".format(now_table))
+    check = c.fetchall()
+    count_check = check[0][0] # 있으면 1, 없으면 0
+
+    if count_check == 0 : # no table -> return 0
         print("create new table...", now_table)
-        print("[before table list]\n", dbc.get_table_list(c))
+        c.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        table_list =[]
+        temp_list = c.fetchall()
+        for i in temp_list :
+            table_list.append(i[0])
+        print("[before table list]\n", table_list)
+        
         c.execute("CREATE TABLE {0}('rank_num' int, 'code' int, 'collect_date' text)".format(now_table))
-        print("[after table list]\n:", dbc.get_table_list(c))
+        
+        c.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        table_list =[]
+        temp_list = c.fetchall()
+        for i in temp_list :
+            table_list.append(i[0])
+        print("[after table list]\n:", table_list)
     
     # insert into database #
-    if dbc.get_last_date(c, now_table) != collect_date : # check last date
-        before_len = len(dbc.get_table(c, 'book_table'))
-        dbc.insert_book_data(c, book_db_list) # insert into db / book_table
-        after_len = len(dbc.get_table(c, 'book_table'))
-        print("book_table before_len: {0} / after_len: {1}".format(before_len, after_len))
+    c.execute("SELECT * FROM {0}".format('book_table'))
+    before_len = len(c.fetchall())
+    c.executemany("INSERT OR REPLACE INTO {0} VALUES (?,?,?,?,?,?)".format('book_table'), book_db_list) # insert into db / book_table
+    c.execute("SELECT * FROM {0}".format('book_table'))
+    after_len = len(c.fetchall())
+    print("book_table before_len: {0} / after_len: {1}".format(before_len, after_len))
 
-        before_len = len(dbc.get_table(c, now_table))
-        dbc.insert_rank_data(c, now_table, rank_db_list) # insert into db / rank_table
-        after_len = len(dbc.get_table(c, now_table))
-        print("rank_table before_len: {0} / after_len: {1}".format(before_len, after_len))
-    else :
-        print("already inserted : DB")
+    c.execute("SELECT * FROM {0}".format(now_table))
+    before_len = len(c.fetchall())
+    c.executemany("INSERT INTO {0} VALUES (?,?,?,?)".format(now_table), rank_db_list) # insert into db / rank_table
+    c.execute("SELECT * FROM {0}".format(now_table))
+    after_len = len(c.fetchall())
+    print("rank_table before_len: {0} / after_len: {1}".format(before_len, after_len))
     
     con.commit()
 
     return row_list, rank_db_list, book_db_list
+
+# 새 컬럼 만드는 함수 #
+# def make_new_column(c, url_list, column_name) :
+#     for i in url_list :
+#         table_name = "rank_{0}".format(i[0]) # table name
+#         c.execute("""ALTER TABLE {0} ADD COLUMN '{1}' TEXT""".format(table_name, column_name))
 
 # main #
 
@@ -116,9 +149,6 @@ url_list = [
     ("economy_ebiz", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025011&sumgb=06&FetchSize=80"), # 경제경영 > 인터넷 비즈니스
     ("humanities", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001019&sumgb=06&FetchSize=80") # 인문    
 ]
-
-# dbc.make_new_column(c, url_list, "rank_var")
-# con.commit()
 
 for url in url_list :
     yes24(url)
