@@ -4,7 +4,6 @@
 import sqlite3
 import crawling as cr
 import connect_sheet as cs
-import DB_controler as dbc
 import sys
 from datetime import datetime
 # doc = cs.open_sheet("url") / worksheet = doc.worksheet("sheet_name")
