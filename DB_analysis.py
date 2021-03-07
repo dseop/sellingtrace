@@ -98,7 +98,7 @@ if switch == 1 : # add book to interesting list
         print("\n▼ 코드 검색 결과 : {0} | {1} | {2}".format(code, title, url))
         print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
 
-        # database
+        # database ############################################################### 수정
         con_remark_book = sqlite3.connect('remark_book_test.db')
         c_remark_book = con_remark_book.cursor()
         c_remark_book.execute("CREATE TABLE {0}('collect_date' text, 'selling_point' int)".format(code))
