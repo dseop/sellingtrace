@@ -23,10 +23,12 @@ def yes24(url) :
     c.execute("select collect_date from rank_economy order by collect_date desc limit 1")
     last_date = c.fetchall()
     if collect_date == last_date[0][0] :
+        print('collect_date:', collect_date)
+        print('last_date:', last_date)
         sys.exit("already excuted today!")
     
     print(datetime.today().time())
-    if "00:00:00" < str(datetime.today().time()) < "08:00:00" :
+    if "01:00:00" < str(datetime.today().time()) < "08:00:00" :
         sys.exit("maybe rank info is not updated!")
 
     # make rank_num, lists
@@ -143,7 +145,7 @@ def yes24(url) :
 # main #
 
 url_list = [
-    ("economy", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80"), # 경제경영
+  #  ("economy", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80"), # 경제경영
     ("economy_invest", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025010&sumgb=06&FetchSize=80"), # 경제경영 > 투자/재테크
     ("economy_ebiz", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025011&sumgb=06&FetchSize=80"), # 경제경영 > 인터넷 비즈니스
     ("humanities", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001019&sumgb=06&FetchSize=80") # 인문    
