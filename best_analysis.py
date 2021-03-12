@@ -81,7 +81,7 @@ def yes24(url) :
             rank_db_row = rank, code, collect_date, rank_var
             rank_db_list.append(rank_db_row)
 
-            book_db_row = code, title, au, pu, publish_date, price
+            book_db_row = code, title, au, pu, publish_date, price, 0
             book_db_list.append(book_db_row)    
         print(i, "page")
     print("DONE! number of data: {0}".format(len(row_list)))
@@ -120,7 +120,7 @@ def yes24(url) :
     # insert into database #
     c.execute("SELECT * FROM {0}".format('book_table'))
     before_len = len(c.fetchall())
-    c.executemany("INSERT OR REPLACE INTO {0} VALUES (?,?,?,?,?,?)".format('book_table'), book_db_list) # insert into db / book_table
+    c.executemany("INSERT OR REPLACE INTO {0} VALUES (?,?,?,?,?,?,?)".format('book_table'), book_db_list) # insert into db / book_table
     c.execute("SELECT * FROM {0}".format('book_table'))
     after_len = len(c.fetchall())
     print("book_table before_len: {0} / after_len: {1}".format(before_len, after_len))

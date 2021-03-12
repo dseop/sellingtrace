@@ -2,9 +2,13 @@ import sqlite3
 con = sqlite3.connect("rank_DB.db")
 c = con.cursor()
 
-c.execute("")
+c.execute("select * from rank_economy")
+d = c.fetchall()
+print(d)
 
 """
+
+
 create table if not exists 'rank_economy_2' ('rank_num' integer, 'code' integer, 'collect_date' text, 'rank_var' integer); 
 create table if not exists 'rank_economy_ebiz_2' ('rank_num' integer, 'code' integer, 'collect_date' text, 'rank_var' integer);
 create table if not exists 'rank_humanities_2' ('rank_num' integer, 'code' integer, 'collect_date' text, 'rank_var' integer);
