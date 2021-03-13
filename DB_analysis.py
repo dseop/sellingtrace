@@ -24,15 +24,6 @@ def search(keyword) :
     print(data)
     return data
 
-# keyword = "무작정 따라하기" 
-# sql = "select book_table.code, book_table.title, rank_economy.rank, rank_economy.today from book_table \
-# join rank_economy on book_table.code = rank_economy.code \
-# where book_table.title like '%{}%'\
-# order by book_table.code;".format(keyword)
-
-# c.execute(sql)
-# data = c.fetchall()
-
 # rank_economy rank_economy_invest rank_economy_ebiz rank_humanities
 table_name = "rank_economy"
 
@@ -43,6 +34,7 @@ elif table_name == "rank_humanities" : rank_df = pd.read_sql_query("select * fro
 
 book_df = pd.read_sql_query("select * from book_table", con)
 rank_df = pd.merge(rank_df, book_df, on='code', how='left') # rank_table + book_table
+# rank_num, code, collect_date, rank_var, title, au, pu, price, title_main, remarked
 rank_df['title_main']  = rank_df['title'].str.split(' : ').str[0] # title_main is 제목, title = 제목+부제
 # print(rank_df.dtypes)
 
@@ -61,13 +53,9 @@ last_day = rank_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray
 last_day_df = rank_df[(rank_df['collect_date'] == last_day)]
 
 # view better : use tabulate #
-switch = 0
-if switch == 3 :
-    print__(last_day_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=['rank_num'],ascending=True))
-
+switch = 1
 if switch == 1 :
-
-    var_setting = (150, 5) # range, var size
+    var_setting = (150, 10) # range, var size
     sort = 'rank_var' 
     # sort = 'rank_num'
     print("\n# {0} 기준".format(last_day))
@@ -81,39 +69,55 @@ if switch == 2 :
     print("\n▼ {0}위 이상 내려간 책: {1}개".format(-var_setting[1],len(var_df)))
     print__(var_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=[sort],ascending=True))
 
+if switch == 3 : # last_day
+    print__(last_day_df[['rank_var', 'rank_num', 'publish_date', 'code', 'title_main']].sort_values(by=['rank_num'],ascending=True))
+
 # book check #
 switch = 1
-if switch == 1 : # add book to interesting list
-    code = 97665510                                
+if switch == 1 : # use if specific code 
+    code = 97648568  
     if code != None :
         url = "http://www.yes24.com/Product/Goods/{0}".format(code)
-
-        # spreadsheet
         title = rank_df[(rank_df['code'] == code)]['title_main'].unique()[0]
-        doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1f2yScTn1L3POs3slWOkV_QEZoNClrSypUA4roQOl5Gs/edit#gid=0")
-        worksheet = doc.worksheet(table_name)
-        code_list = list(map(int, worksheet.col_values(1)))
-        if code not in code_list :
-            worksheet.append_row((code, title, url, pd.Timestamp.today()))
+        
+        # spreadsheet #
+        # doc = cs.open_sheet("https://docs.google.com/spreadsheets/d/1f2yScTn1L3POs3slWOkV_QEZoNClrSypUA4roQOl5Gs/edit#gid=0")
+        # worksheet = doc.worksheet(table_name)
+        # code_list = list(map(int, worksheet.col_values(1)))
+        # if code not in code_list :
+        #     worksheet.append_row((code, title, url, pd.Timestamp.today()))
+
+        # db control #
         print("\n▼ 코드 검색 결과 : {0} | {1} | {2}".format(code, title, url))
         print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
 
-        # database ############################################################### 수정
-        con_remark_book = sqlite3.connect('remark_book_test.db')
-        c_remark_book = con_remark_book.cursor()
-        c_remark_book.execute("CREATE TABLE {0}('collect_date' text, 'selling_point' int)".format(code))
+        c.execute("UPDATE book_table SET remarked = 1 WHERE code = {0}".format(code))
+        c.execute("INSERT OR REPLACE INTO remarked_list VALUES(?,?)", (code, table_name))
 
         """
         sqlite3
-        .open remark_book_test.db
-        .schema
+        .open rank_DB_.db
+        select * from book_table where remarked = 1;
+        .schema book_table
         c.execute("CREATE TABLE remarkable_booklist('code' int PRIMARY KEY)")
-        #c.execute("CREATE TABLE book_table('code' int PRIMARY KEY, 'title' text, 'au' text, 'pu' text, 'date' text, 'price' text)")
         """
+        """
+        c.execute("CREATE TABLE book_table('code' int PRIMARY KEY, 'title' text, 'au' text, 'pu' text, 'date' text, 'price' text, 'remarked' int)")
+        """    
+# delete remarked
+if switch == 2 : 
+    c.execute("UPDATE book_table SET remarked = 0 WHERE code = {0}".format(code))
 
-# searching keyword #
-keyword = "빅 스텝"
 switch = 1
+if switch == 1 : # list up
+    for code in list(book_df[(book_df['remarked'] == 1)]['code']) :
+        print("\n{0}".format(rank_df[(rank_df['code'] == code)]['title_main'].unique()[0]))
+        print__(rank_df[(rank_df['code'] == code)][['collect_date', 'rank_num', 'rank_var']])
+
+
+# searching keyword # 수정 많이 필요함
+keyword = "경기도"
+switch = 0
 if switch == 1 :
     search_df_title = last_day_df[last_day_df['title'].str.contains(keyword, regex=False)] # search keyword from today's data
     if len(search_df_title) != 0 : 
@@ -152,7 +156,7 @@ elif switch == 2 :
 
 # 2. 내가 등록한 도서들, 일정 기간 집중 분석 ex 연속 0일 상승 중 / 지난 1주일 중 0일 상승
 
-
+con.commit()
 con.close()
 
 

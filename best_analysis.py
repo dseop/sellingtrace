@@ -17,14 +17,14 @@ def yes24(url) :
     
     print("get rank data from YES24...")
     now_table = "rank_{0}".format(url[0]) # str # processing table name
-    collect_date = cr.date
-    print("now table name: {0} / collect_date: {1}".format(url[0], collect_date))
-    
-    c.execute("select collect_date from rank_economy order by collect_date desc limit 1")
-    last_date = c.fetchall()
-    if collect_date == last_date[0][0] :
-        print('collect_date:', collect_date)
-        print('last_date:', last_date)
+    collect_date = cr.date    
+    c.execute("select collect_date from {0} order by collect_date desc limit 1".format(now_table))
+    last_date = c.fetchall()[0][0]
+    print("now table name: {0} / collect_date: {1} / last date: {2} ".format(now_table, collect_date, last_date))
+
+    if collect_date == last_date :
+        print('collect_date is same with last_date')
+        return print("return woriking")
         sys.exit("already excuted today!")
     
     print(datetime.today().time())
@@ -81,8 +81,16 @@ def yes24(url) :
             rank_db_row = rank, code, collect_date, rank_var
             rank_db_list.append(rank_db_row)
 
-            book_db_row = code, title, au, pu, publish_date, price, 0
-            book_db_list.append(book_db_row)    
+            c.execute("SELECT COUNT(*) FROM book_table WHERE code = {0}".format(code))
+            if c.fetchall()[0][0] == 0 :
+                remarked = 0
+            else :
+                c.execute("SELECT remarked FROM book_table WHERE code = {0}".format(code))
+                remarked = c.fetchall()
+                remarked = remarked[0][0]
+            
+            book_db_row = code, title, au, pu, publish_date, price, remarked
+            book_db_list.append(book_db_row)
         print(i, "page")
     print("DONE! number of data: {0}".format(len(row_list)))
 
@@ -118,19 +126,19 @@ def yes24(url) :
         print("[after table list]\n:", table_list)
     
     # insert into database #
-    c.execute("SELECT * FROM {0}".format('book_table'))
-    before_len = len(c.fetchall())
-    c.executemany("INSERT OR REPLACE INTO {0} VALUES (?,?,?,?,?,?,?)".format('book_table'), book_db_list) # insert into db / book_table
-    c.execute("SELECT * FROM {0}".format('book_table'))
-    after_len = len(c.fetchall())
+    c.execute("SELECT COUNT(*) FROM book_table")
+    before_len = c.fetchall()[0][0]
+    c.executemany("INSERT OR REPLACE INTO book_table VALUES (?,?,?,?,?,?,?)", book_db_list) # insert into db / book_table
+    c.execute("SELECT COUNT(*) FROM book_table")
+    after_len = c.fetchall()[0][0]
     print("book_table before_len: {0} / after_len: {1}".format(before_len, after_len))
 
-    c.execute("SELECT * FROM {0}".format(now_table))
-    before_len = len(c.fetchall())
+    c.execute("SELECT COUNT(*) FROM {0}".format(now_table))
+    before_len = c.fetchall()[0][0]
     c.executemany("INSERT INTO {0} VALUES (?,?,?,?)".format(now_table), rank_db_list) # insert into db / rank_table
-    c.execute("SELECT * FROM {0}".format(now_table))
-    after_len = len(c.fetchall())
-    print("rank_table before_len: {0} / after_len: {1}".format(before_len, after_len))
+    c.execute("SELECT COUNT(*) FROM {0}".format(now_table))
+    after_len = c.fetchall()[0][0]
+    print("{2} before_len: {0} / after_len: {1}".format(before_len, after_len, now_table))
     
     con.commit()
 
@@ -145,7 +153,7 @@ def yes24(url) :
 # main #
 
 url_list = [
-  #  ("economy", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80"), # 경제경영
+    ("economy", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025&sumgb=06&FetchSize=80"), # 경제경영
     ("economy_invest", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025010&sumgb=06&FetchSize=80"), # 경제경영 > 투자/재테크
     ("economy_ebiz", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025011&sumgb=06&FetchSize=80"), # 경제경영 > 인터넷 비즈니스
     ("humanities", "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001019&sumgb=06&FetchSize=80") # 인문    
