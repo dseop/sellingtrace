@@ -51,9 +51,9 @@ rank_df = rank_df[(rank_df['collect_date'] >= start_date) & (rank_df['collect_da
 last_day = rank_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray' 
 
 # view better : use tabulate #
-switch = 0
+switch = 1
 if switch == 1 :
-    var_setting = (100, 1) # range, var size
+    var_setting = (400, 10) # range, var size
     sort = 'rank_var' 
     # sort = 'rank_num'
 
@@ -79,9 +79,9 @@ if switch == 3 :
     print__(specific_day_df[['rank_num', 'rank_var', 'code', 'title_main']].sort_values(by=['rank_num'],ascending=True))
 
 # book check #
-switch = 0
+switch = 1
 if switch == 1 : # use if specific code 
-    code = 97965467    
+    code = 97680050                
     if code != None :
         url = "http://www.yes24.com/Product/Goods/{0}".format(code)
         title = rank_df[(rank_df['code'] == code)]['title_main'].unique()[0]
