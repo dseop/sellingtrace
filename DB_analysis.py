@@ -53,15 +53,14 @@ last_day = rank_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray
 # view better : use tabulate #
 switch = 1
 if switch == 1 :
-    var_setting = (400, 10) # range, var size
-    sort = 'rank_var' 
-    # sort = 'rank_num'
-
+    var_setting = (100, 5) # range, var size
+    sort = 'rank_num' # sort = 'rank_num' 'rank_var'
+    # asc = True # False True
     last_day_df = rank_df[(rank_df['collect_date'] == last_day)]
     print("\n# {0} 기준".format(last_day))
     var_df = last_day_df[(last_day_df['rank_var'] >= var_setting[1]) & (last_day_df['rank_num'] <= var_setting[0])]
     print("\n▼ {0}위 이상 올라간 책: {1}개".format(var_setting[1],len(var_df)))
-    print__(var_df[['rank_num', 'rank_var', 'publish_date', 'code', 'title_main']].sort_values(by=[sort],ascending=False))
+    print__(var_df[['rank_num', 'rank_var', 'publish_date', 'code', 'title_main']].sort_values(by=[sort],ascending=True))
     # rank down list
     var_df = last_day_df[(last_day_df['rank_var'] <= -var_setting[1]) & (last_day_df['rank_num'] <= var_setting[0])]
     print("\n▼ {0}위 이상 내려간 책: {1}개".format(-var_setting[1],len(var_df)))
@@ -81,7 +80,7 @@ if switch == 3 :
 # book check #
 switch = 1
 if switch == 1 : # use if specific code 
-    code = 97680050                
+    code = 98195271                      
     if code != None :
         url = "http://www.yes24.com/Product/Goods/{0}".format(code)
         title = rank_df[(rank_df['code'] == code)]['title_main'].unique()[0]
