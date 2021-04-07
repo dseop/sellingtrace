@@ -51,7 +51,7 @@ rank_df = rank_df[(rank_df['collect_date'] >= start_date) & (rank_df['collect_da
 last_day = rank_df['collect_date'].unique()[-1] # .unique -> type 'numpy.ndarray' 
 
 # view better : use tabulate #
-switch = 1
+switch = 0
 if switch == 1 :
     var_setting = (100, 5) # range, var size
     sort = 'rank_num' # sort = 'rank_num' 'rank_var'
@@ -78,7 +78,7 @@ if switch == 3 :
     print__(specific_day_df[['rank_num', 'rank_var', 'code', 'title_main']].sort_values(by=['rank_num'],ascending=True))
 
 # book check #
-switch = 1
+switch = 0
 if switch == 1 : # use if specific code 
     code = 98195271                      
     if code != None :
@@ -105,7 +105,7 @@ if switch == 2 :
     c.execute("UPDATE book_table SET remarked = 0 WHERE code = {0}".format(code))
 
 # remarked list / view all #
-switch = 1
+switch = 0
 if switch == 1 : # list up
     print("\n▼ 마크된 책 리스트")
     for code in list(book_df[(book_df['remarked'] == 1)]['code']) :
@@ -128,7 +128,7 @@ if title_keyword != "" :
         print("\n▼ 제목 검색 결과 : {0}".format(title_keyword))
         print__(search_df_title[['collect_date','rank_num', 'code', 'au', 'pu', 'price']]) # type(search_df) = df
 
-author_keyword = ""
+author_keyword = "박희용"
 if author_keyword != "" :
     search_df_au = rank_df[rank_df['au'].str.contains(author_keyword, regex=False)] # search keyword from today's data
     if len(search_df_au) != 0 :
