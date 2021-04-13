@@ -1,7 +1,9 @@
-# get info about 1book (유사 경쟁서 정보 정리할 때 유용)
+# get info about 1book
+
 from bs4 import BeautifulSoup as bs
 import pyperclip
 from selenium import webdriver
+
 # https://chromedriver.chromium.org/downloads 
 driver = webdriver.Chrome()
 
