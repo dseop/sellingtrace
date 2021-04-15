@@ -3,7 +3,8 @@ import crawling as cr
 import connect_sheet as cs
 
 today = datetime.today().date()
-url = ("부동산","http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025010003&sumgb=06&FetchSize=80")
+url = "http://www.yes24.com/24/category/bestseller?CategoryNumber=001001025008&sumgb=06&FetchSize=80"
+url = ("경제경영/경영", url)
 print(url)
 
 rank = 0
