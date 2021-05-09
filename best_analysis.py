@@ -9,8 +9,8 @@ from datetime import datetime
 # doc = cs.open_sheet("url") / worksheet = doc.worksheet("sheet_name")
 
 # DB connect    
+con = sqlite3.connect("G:/내 드라이브/rank_DB.db")
 # con = sqlite3.connect("rank_DB.db")
-con = sqlite3.connect("rank_DB.db")
 c = con.cursor()
 
 def yes24(url) :
@@ -28,7 +28,7 @@ def yes24(url) :
         sys.exit("already excuted today!")
     
     print(datetime.today().time())
-    if "01:00:00" < str(datetime.today().time()) < "08:00:00" :
+    if "01:00:00" < str(datetime.today().time()) < "07:00:00" :
         sys.exit("maybe rank info is not updated!")
 
     # make rank_num, lists
