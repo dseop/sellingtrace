@@ -17,11 +17,12 @@ def yes24(url) :
     
     print("get rank data from YES24...")
     now_table = "rank_{0}".format(url[0]) # str # processing table name
-    collect_date = cr.date    
+    collect_date = cr.date
     c.execute("select collect_date from {0} order by collect_date desc limit 1".format(now_table))
     last_date = c.fetchall()[0][0]
-    print("now table name: {0} / collect_date: {1} / last date: {2} ".format(now_table, collect_date, last_date))
+    collect_date = collect_date.replace("15", "14")
 
+    print("now table name: {0} / collect_date: {1} / last date: {2} ".format(now_table, collect_date, last_date))
     if collect_date == last_date :
         print('collect_date is same with last_date')
         return print("return woriking")
