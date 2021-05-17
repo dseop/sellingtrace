@@ -20,7 +20,7 @@ def yes24(url) :
     collect_date = cr.date
     c.execute("select collect_date from {0} order by collect_date desc limit 1".format(now_table))
     last_date = c.fetchall()[0][0]
-    collect_date = collect_date.replace("15", "14")
+    # collect_date = collect_date.replace("15", "14") # 2021-05-17
 
     print("now table name: {0} / collect_date: {1} / last date: {2} ".format(now_table, collect_date, last_date))
     if collect_date == last_date :
