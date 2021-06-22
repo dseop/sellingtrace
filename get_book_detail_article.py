@@ -1,6 +1,6 @@
 import pyperclip
 import crawling as cr
-import get_basic_book_info as gbbi
+import get_book_basic_info as gbbi
 
 url = pyperclip.paste()
 # url = "http://www.kyobobook.co.kr/product/detailViewKor.laf?mallGb=KOR&ejkGb=KOR&linkClass=130721&barcode=9791189249519"
